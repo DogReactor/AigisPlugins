@@ -1,0 +1,18 @@
+{
+    "pluginName":"训练营",
+    "author":"BetAlice",
+    "version":"0.1.0",
+    "description":"制订育成计划",
+    "entry":"index.html",
+    "background":"background.js",
+    "enable":false,
+    "windowOption":{
+        "width":1280,
+        "minWidth":780,
+        "height":900,
+        "title":"训练营",
+        "minimizable":true,
+        "maximizable":false,
+        "resizable":true
+    }
+}
