@@ -1,55 +1,48 @@
-import { calculator } from "./function/calculator"
-import { GameData } from "./function/gameDataScheme"
+
 // Background script of BootCamp
 class RawData {
-    public NameText = []
-    public UnitsData = []
-    public ClassData = []
-    public SkillList = []
-    public PlayerUnitsData = []
+    ID:String
+    Body:Array<Object>
+    Sended:Boolean
+    constructor(id:String) {
+        this.ID = id
+        this.Body=new Array()
+    }
+}
+
+class Cargo {
+    public NameText = new RawData('NameText')
+    public UnitsData = new RawData('UnitsData')
+    public ClassData = new RawData('ClassData')
+    public SkillList = new RawData('SkillList')
+    public PlayerUnitsData = new RawData('PlayerUnitsData')
     constructor() {
         // TO DO 获取职业、名字表、技能信息
     }
-
-
-    isSuffcient() {
-        const dataPromise = new Promise((resolve) => {
-            if (Object.values(this).every((data) => { return data.length > 0 })) {
-                return resolve('Ok')
-            }
-        })
-        return dataPromise
-    }
 }
 
-
-
-async function parseData(rawData:RawData):Promise<GameData> {
-    let gameData=new GameData;
-    await rawData.isSuffcient()
-
-    return gameData
-}
+let cargo = new Cargo
+let mailBox = null
 
 export function run(pluginHelper) {
-    pluginHelper.onMessage((msg, sendResponse) => {
-        if(msg.sender = "BootCamp") {
-
+    mailBox = pluginHelper
+    mailBox.onMessage((msg,sendResponse) => {
+        switch (msg) {
+            case 'Request raw data':
+                sendResponse(Object.values(cargo).filter(e => e.Body.length > 0))
         }
-    });
+    })
 }
 
 export function newGameResponse(event, data) {
-    if(this.rawData==undefined) {
-        this.rawData = new RawData
-    }
-    
     switch (event) {
         case 'allcards-info':
-            this.rawData.UnitsData = data
+            cargo.UnitsData.Body = data
+            mailBox.sendMessage(Array.of(cargo.UnitsData))
             break
         case 'allunits-info':
-            this.rawData.PlayerUnitsData = data
+            cargo.PlayerUnitsData.Body = data
+            mailBox.sendMessage(Array.of(cargo.PlayerUnitsData))
             break
         default: break
     }
