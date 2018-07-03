@@ -1,17 +1,58 @@
-export function calLevel(exp:number, mult:number) {
-    //经验值表
-    var expList = [0,32,65,100,135,172,211,250,291,333,418,506,598,693,791,893,998,1106,1218,1333,1503,1679,1862,2052,2249,2452,2662,2879,3103,3333,3616,3910,4215,4531,4859,5198,5548,5910,6282,6667,7232,7819,8429,9062,9718,10395,11096,11819,12565,13333,14181,15062,15977,16927,17910,18927,19977,21062,22181,23333,24463,25638,26859,28124,29435,30791,32192,33638,35130,36667,38079,39548,41073,42655,44294,45989,47740,49548,51412,53333,55311,57367,59503,61718,64011,66384,68836,71367,73977,76667,78644,80701,82836,85051,87345,89718,92169,94701,97311,97311];
+import { Unit, ResourceStore} from './gameData.service'
 
-    var baseExp = Math.round(exp / mult);
-    //利用公式Exp=0.1793*Lv^2.877)猜一次等级
-    var pLv = Math.min(Math.round(Math.pow(baseExp / 0.1793, 1 / 2.877)), 98);
-    //与猜测等级附近的等级比较经验值，找出准确等级
-    while ((expList[pLv] > baseExp || expList[pLv + 1] <= baseExp) && expList[99] > baseExp) {
-        if (expList[pLv] > baseExp) {
-            pLv = pLv - 1;
-        } else {
-            pLv = pLv + 1;
+
+export class GeneratePlan {
+    
+    eatLittleBlessing(unit:Unit, resStore:ResourceStore) {
+        let suc = false
+        let exp = 0
+        if (resStore.LittleBlessing[unit.Rare.ID] > 0) {
+            resStore.LittleBlessing[unit.Rare.ID] -= 1
+            switch (unit.Rare.ID) {
+                case '银': exp = 3000; break
+                case '金': exp = 18000; break
+                case '白': exp = 19000; break
+                case '黑': exp = 20000; break
+                case '蓝': exp = 19000; break
+                default: break
+            }
+            exp*=resStore.GlobalExpMult
+            suc=true
         }
+        unit.expUp(exp)
+        return suc
     }
-    return [pLv + 1, Math.round(exp-expList[pLv]*mult)];
+    eatPackage(unit:Unit, resStore:ResourceStore, kind = 'Bucket') {
+        let suc =false
+        let exp = 0
+        if (resStore.RareSpirit[unit.Rare.ID] >= 3 && resStore[kind] > 0) {
+            resStore.LittleBlessing[unit.Rare.ID] -= 3
+            resStore[kind] -= 1
+            exp = kind == 'Bucket' ? 8000 : 40000
+            exp*=resStore.GlobalExpMult
+            suc=true
+        }
+        return suc
+    }
+    eatIridescence(unit:Unit, resStore:ResourceStore) {
+        let suc = false
+        let cost = 0
+        const upSkillChance = {
+            '3': [1, 0.25],
+            '5': [1, 0.75, 0.5, 0.25],
+            '10': [1, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.25],
+            '16': [1, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25]
+        }
+        if (unit.Skill.SkillLevel != unit.Skill.MaxSkillLevel) {
+            upSkillChance[unit.Skill.MaxSkillLevel].slice(unit.Skill.SkillLevel - 1, unit.Skill.MaxSkillLevel).forEach(c => cost += 1 / c)
+            if (resStore.Iridescence >= cost) {
+                resStore.Iridescence -= cost
+                suc = true
+            }
+        }
+        else {
+            suc = true
+        }
+        return suc
+    }
 }

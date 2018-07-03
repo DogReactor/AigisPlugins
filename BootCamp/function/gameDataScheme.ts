@@ -1,206 +1,14 @@
-import { calLevel } from './calculator'
+import { RareStage, GrowthStage, Unit, ResourceStore, Profession } from './gameData.service'
 
-class GrowthStage {
-    public ID: string
-    private MaxLevel: Array<number>
-    constructor(id: string, maxLevel: Array<number>) {
-        this.ID = id
-        this.MaxLevel = maxLevel
-    }
-    getMaxLevel(rare: keyof Array<Object>) {
-        return this.MaxLevel[rare]
-    }
-}
-
-class RareStage {
-    public ID: string
-    public ExpMult: number
-    public AWGoldCost: number
-    public OrbCost: number
-    public MaxGrowth: number
-    constructor(id: string, expMult: number) {
-        this.ID = id
-        this.ExpMult = expMult
-        if (expMult < 1.2) {
-            this.MaxGrowth = 0
-            this.AWGoldCost = 0
-        }
-        else if (expMult < 1.3) {
-            this.MaxGrowth = 1
-            this.AWGoldCost = 0
-        }
-        else {
-            this.AWGoldCost = 20 + (expMult - 1.3) * 50
-            this.OrbCost = (expMult - 1.2) * 10
-            this.MaxGrowth = 3
-        }
-    }
-}
-
-const RareList = [
-    new RareStage('铁', 1),
-    new RareStage('铜', 1.1),
-    new RareStage('银', 1.2),
-    new RareStage('金', 1.3),
-    new RareStage('白', 1.4),
-    new RareStage('黑', 1.5),
-    new RareStage('蓝', 1.4)
-]
-
-const StageList = [
-    new GrowthStage('CC前', [30, 40, 50, 50, 50, 50, 50]),
-    new GrowthStage('CC后', [30, 40, 55, 60, 70, 80, 65]),
-    new GrowthStage('第一觉醒', [30, 40, 55, 80, 90, 99, 85]),
-    new GrowthStage('第二觉醒', [30, 40, 55, 99, 99, 99, 99])
-]
-
-class Profession {
-    public Name: string
-    public Stages: Array<Object>
-    public AWOrbs: Array<number>
-    constructor(c: any) {
-        this.Name = c.Name
-        switch (c.MaxLevel) {
-            case '50': this.Stages = StageList; break
-            case '80': this.Stages = StageList.slice(1, c.Depth + 1); break
-            case '99': this.Stages = StageList.slice(1, 2); break
-            default: break
-        }
-        this.AWOrbs.push(c.Data_ExtraAwakeOrb1, c.Data_ExtraAwakeOrb2)
-    }
-}
 
 let ClassList = new Array()
 
 
 
-class Unit {
-    public ID: number
-    public CardID: number
-    public Name: string
-    public Class: Profession
-    public Rare: RareStage
-    public Stages: Array<GrowthStage>
-    public Proficiency = {
-        Lv: 0,
-        NextExp: 0
-    }
-    public Favor: number
-    public SkillLevel: Array<number>
-    constructor(rawData: RawData, u) {
-        this.ID = u.UnitID
-        this.Name = rawData.NameText[u.A1 - 1].Message
-        this.CardID = u.A1
-        let c = rawData.ClassData.find(e => e.ClassID == u.A2)
-
-        this.Class = ClassList[c.First.Key]
-        this.Rare = RareList[Math.min(rawData.UnitsData.Rare, 6)]
-        this.Stages = this.Class.Stages.slice(u.A3)
-        [this.Proficiency.Lv, this.Proficiency.NextExp] = calLevel(parseInt(u.A4), this.Rare.ExpMult)
-        this.Favor = u.A5
-        this.SkillLevel.push(u.A6, rawData.SkillList[rawData.UnitsData.ClassLV1SkillID].LevelMax)
-    }
-}
-
-class ResourceStore {
-    public RareSpirit = {
-        '铁': 0,
-        '铜': 0,
-        '银': 0,
-        '金': 0,
-        '白': 0,
-        '黑': 0,
-        '王': 0
-    }
-    public Gold = 0
-    public Bucket = 0
-    public DarkBucket = 0
-    public LittleBlessing = {// TO DO 35的小祝福是什么？
-        '银': 0,
-        '金': 0,
-        '白': 0,
-        '黑': 0,
-        '蓝': 0
-    }
-    public Iridescence = 0
-    public AWSpirit = 0
-    public AW2Spirit = 0
-    public SkillAWSpirit = 0
-    public MagicCrystal = 0
-    public Orb = null // TO DO 写出珠子
-    addOtherSpirit(classID, num = 0) {
-        let kindMap = new Map([[7, 'Iridescence'], [10, 'Bucket'], [11, 'AWSpirit'], [14, 'SkillAWSpirit'], [30, 'AW2Spirit'], [36, 'DarkBucket']])
-        if (kindMap.get(classID) != undefined) {
-            this[kindMap.get(classID)] += num | 1
-        }
-    }
-    addRareSpirit(classID, num = 0) {
-        let rareMap = new Map([[1, '铁'], [2, '铜'], [3, '银'], [4, '金'], [5, '白'], [6, '黑'], [12, '王']])
-        this.RareSpirit[rareMap.get(classID)] += num | 1
-    }
-    addLittleSpirit(rare, num = 0) {
-        let rareMap = new Map([[2, '银'], [3, '金'], [4, '白'], [5, '黑'], [7, '蓝']])
-        this.LittleBlessing[rareMap.get(rare)] += num | 1
-    }
-    
-    eatLittleBlessing(rare: RareStage) {
-        let exp = 0
-        if (this.LittleBlessing[rare.ID] > 0) {
-            this.LittleBlessing[rare.ID] -= 1
-        }
-        switch (rare.ID) {
-            case '银': exp = 3000; break
-            case '金': exp = 18000; break
-            case '白': exp = 19000; break
-            case '黑': exp = 20000; break
-            case '蓝': exp = 19000; break
-            default: break
-        }
-        return exp
-    }
-    eatPackage(rare: RareStage, kind = 'Bucket') {
-        let exp = 0
-        if (this.RareSpirit[rare.ID] >= 3 && this[kind] > 0) {
-            this.LittleBlessing[rare.ID] -= 3
-            this[kind] -= 1
-            exp = kind == 'Bucket' ? 8000 : 40000
-        }
-        return exp
-    }
-    eatIridescence(skillLv: number, maxSkillLv: number) {
-        let suc = false
-        let cost = 0
-        let upSkillChance = {
-            '3': [1, 0.25],
-            '5': [1, 0.75, 0.5, 0.25],
-            '10': [1, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.25],
-            '16': [1, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25]
-        }
-        if (skillLv != maxSkillLv) {
-            upSkillChance[maxSkillLv].slice(skillLv - 1, maxSkillLv).forEach(c => cost += 1 / c)
-            if (this.Iridescence >= cost) {
-                this.Iridescence -= cost
-                suc = true
-            }
-        }
-        else {
-            suc = true
-        }
-        return suc
-    }
-}
-
-class RawData {
-    public NameText: Array<Object>
-    public UnitsData: Array<Object>
-    public ClassData: Array<Object>
-    public SkillList: Array<Object>
-}
 
 class ParsedGameData {
     public BarrackInfo: Array<Unit>
     public ResStore: ResourceStore
-    public GlobalExpMult = 1
 }
 export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, spiritStore: Array<Object>): ParsedGameData {
     rawData.ClassData.map(c => Object.defineProperty(c, 'Pre', {
@@ -253,23 +61,23 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
     })
 
 
-    let parseGameData = new ParsedGameData
+    let parsedGameData = new ParsedGameData
     playerUnitData.forEach(u => {
         if (u.UnitID != 0 && u.A2 > 99) {
-            parseGameData.BarrackInfo.push(new Unit(rawData, u))
+            parsedGameData.BarrackInfo.push(new Unit(rawData, u))
         }
         if (u.A2 < 99) {
             if (1 <= u.A2 && u.A2 <= 6 || u.A2 == 12) {
-                parseGameData.ResStore.addRareSpirit(u.A2)
+                parsedGameData.ResStore.addRareSpirit(u.A2)
             }
             else if (u.A2 == 17) {
-                parseGameData.ResStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare)
+                parsedGameData.ResStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare)
             }
             else if (u.A2 == 32) {
-                parseGameData.GlobalExpMult = 1.1
+                parsedGameData.ResStore.GlobalExpMult = 1.1
             }
             else {
-                parseGameData.ResStore.addOtherSpirit(u.A2)
+                parsedGameData.ResStore.addOtherSpirit(u.A2)
             }
         }
     })
@@ -277,19 +85,19 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
     spiritStore.forEach(s => {
         let id = rawData.UnitsData[s.CardID].InitClassID
         if (1 <= id && id <= 6 || id == 12) {
-            parseGameData.ResStore.addRareSpirit(id, s.Count)
+            parsedGameData.ResStore.addRareSpirit(id, s.Count)
         }
         else if (id == 17) {
-            parseGameData.ResStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare, s.Count)
+            parsedGameData.ResStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare, s.Count)
         }
         else if (id == 32) {
-            parseGameData.GlobalExpMult = 1.1
+            parsedGameData.ResStore.GlobalExpMult = 1.1
         }
         else {
-            parseGameData.ResStore.addOtherSpirit(id, s.Count)
+            parsedGameData.ResStore.addOtherSpirit(id, s.Count)
         }
     })
 
     // TO DO 获取金钱、魔水、宝珠
-    return parseGameData
+    return parsedGameData
 }
