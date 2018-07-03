@@ -49,41 +49,8 @@ export class Profession {
     public Name: string
     public Stages: Array<Object>
     public AWOrbs: Array<number>
-    constructor(c: any) {
-        this.Name = c.Name
-        switch (c.MaxLevel) {
-            case '50': this.Stages = StageList; break
-            case '80': this.Stages = StageList.slice(1, c.Depth + 1); break
-            case '99': this.Stages = StageList.slice(1, 2); break
-            default: break
-        }
-        this.AWOrbs.push(c.Data_ExtraAwakeOrb1, c.Data_ExtraAwakeOrb2)
-    }
 }
 
-const RareList = [
-    new RareStage('铁', 1),
-    new RareStage('铜', 1.1),
-    new RareStage('银', 1.2),
-    new RareStage('金', 1.3),
-    new RareStage('白', 1.4),
-    new RareStage('黑', 1.5),
-    new RareStage('蓝', 1.4)
-]
-
-const StageList = [
-    new GrowthStage('CC前', [30, 40, 50, 50, 50, 50, 50]),
-    new GrowthStage('CC后', [30, 40, 55, 60, 70, 80, 65]),
-    new GrowthStage('第一觉醒', [30, 40, 55, 80, 90, 99, 85]),
-    new GrowthStage('第二觉醒', [30, 40, 55, 99, 99, 99, 99])
-]
-
-class RawData {
-    public NameText: Array<Object>
-    public UnitsData: Array<Object>
-    public ClassData: Array<Object>
-    public SkillList: Array<Object>
-}
 
 export class Unit {
     public ID: number
@@ -99,19 +66,7 @@ export class Unit {
     }
     public Favor: number
     public Skill = {SkillLevel : 0, MaxSkillLevel : 0}
-    constructor(rawData: RawData, u) {
-        this.ID = u.UnitID
-        this.Name = rawData.NameText[u.A1 - 1].Message
-        this.CardID = u.A1
-        let c = rawData.ClassData.find(e => e.ClassID == u.A2)
 
-        this.Class = ClassList[c.First.Key]
-        this.Rare = RareList[Math.min(rawData.UnitsData.Rare, 6)]
-        this.Stages = this.Class.Stages.slice(u.A3)
-        [this.Proficiency.Lv, this.Proficiency.NextExp] = this.expUp(parseInt(u.A4))
-        this.Favor = u.A5
-        this.Skill={SkillLevel :u.A6, MaxSkillLevel :rawData.SkillList[rawData.UnitsData.ClassLV1SkillID].LevelMax}
-    }
     expUp(exp:number) {
         this.Proficiency.TotalExp+=exp;
         let baseExp = Math.round(this.Proficiency.TotalExp / this.Rare.ExpMult);
@@ -125,7 +80,8 @@ export class Unit {
                 pLv = pLv + 1;
             }
         }
-        return [pLv + 1, Math.round(exp - expList[pLv] * this.Rare.ExpMult)];
+        this.Proficiency.Lv=pLv + 1
+        this.Proficiency.NextExp = Math.round(this.Proficiency.TotalExp - expList[pLv] * this.Rare.ExpMult)
     }
 }
 
