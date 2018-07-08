@@ -25,9 +25,6 @@ class RawData {
     public SkillList: Array<Object>
 }
 
-let ClassList = new Array()
-
-
 
 
 export class ParsedGameData {
@@ -146,6 +143,8 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
 
     return theUnit
 }
+
+
 export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, spiritStore: Array<Object>) {
 
     let classTree = createClassTree(rawData.ClassData)
@@ -160,6 +159,7 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
         if (u.UnitID != 0 && u.A2 > 99) {
             parsedGameData.BarrackInfo.push(parseUnitData(rawData, u, classData))
         }
+        // 更新兵营中的圣灵等
         if (u.A2 < 99) {
             if (1 <= u.A2 && u.A2 <= 6 || u.A2 == 12) {
                 parsedGameData.ResStore.addRareSpirit(u.A2)
@@ -176,6 +176,7 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
         }
     })
 
+    // 更新仓库中的圣灵等， 需要另写一个函数
     spiritStore.forEach(s => {
         let id = rawData.UnitsData[s.CardID].InitClassID
         if (1 <= id && id <= 6 || id == 12) {
@@ -193,4 +194,8 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
     })
 
     // TO DO 获取金钱、魔水、宝珠
+}
+
+export function parseSpiritRepo(){
+    
 }
