@@ -47,8 +47,9 @@ export class RareStage {
 
 export class Profession {
     public Name: string
-    public Stages: Array<Object>
+    public Stages: Array<GrowthStage>
     public AWOrbs: Array<number>
+    public ClassKeys:Array<number>
 }
 
 
