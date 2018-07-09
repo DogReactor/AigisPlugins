@@ -18,11 +18,17 @@ const StageList = [
     new GrowthStage('第二觉醒', [30, 40, 55, 99, 99, 99, 99])
 ]
 
-class RawData {
+export class RawData {
     public NameText: Array<Object>
     public UnitsData: Array<Object>
     public ClassData: Array<Object>
     public SkillList: Array<Object>
+    constructor(dataRepo) {
+        this.NameText=dataRepo.NameText
+        this.UnitsData=dataRepo.UnitsData
+        this.ClassData=dataRepo.ClassData
+        this.SkillList=dataRepo.SkillList
+    }
 }
 
 
@@ -145,8 +151,13 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
 }
 
 
-export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, spiritStore: Array<Object>) {
+export async function parseGameData(rawData: RawData, playerUnitData: Array<Object>) {
 
+    await new Promise(resolve=>{
+        if(rawData.NameText.length*rawData.ClassData.length*rawData.SkillList.length*rawData.UnitsData.length*playerUnitData.length!=0) {
+            return resolve('Ok')
+        }
+    })
     let classTree = createClassTree(rawData.ClassData)
     let classData = []
     classTree.forEach(c => {
@@ -176,26 +187,27 @@ export function parseGameData(rawData: RawData, playerUnitData: Array<Object>, s
         }
     })
 
-    // 更新仓库中的圣灵等， 需要另写一个函数
-    spiritStore.forEach(s => {
-        let id = rawData.UnitsData[s.CardID].InitClassID
-        if (1 <= id && id <= 6 || id == 12) {
-            parsedGameData.ResStore.addRareSpirit(id, s.Count)
-        }
-        else if (id == 17) {
-            parsedGameData.ResStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare, s.Count)
-        }
-        else if (id == 32) {
-            parsedGameData.ResStore.GlobalExpMult = 1.1
-        }
-        else {
-            parsedGameData.ResStore.addOtherSpirit(id, s.Count)
-        }
-    })
-
     // TO DO 获取金钱、魔水、宝珠
+    return parsedGameData
 }
 
-export function parseSpiritRepo(){
-    
+export function parseSpiritRepo(rawData:RawData, spiritStore: Array<Object>, resStore:ResourceStore){
+        // 更新仓库中的圣灵等， 需要另写一个函数
+        spiritStore.forEach(s => {
+            let id = rawData.UnitsData[s.CardID].InitClassID
+            if (1 <= id && id <= 6 || id == 12) {
+                resStore.addRareSpirit(id, s.Count)
+            }
+            else if (id == 17) {
+                resStore.addLittleSpirit(rawData.UnitsData[u.A1].Rare, s.Count)
+            }
+            else if (id == 32) {
+                resStore.GlobalExpMult = 1.1
+            }
+            else {
+                resStore.addOtherSpirit(id, s.Count)
+            }
+        })
+
+        return resStore
 }

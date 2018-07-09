@@ -3,7 +3,6 @@
 class RawData {
     ID:String
     Body:Array<Object>
-    Sended:Boolean
     constructor(id:String) {
         this.ID = id
         this.Body=new Array()
