@@ -23,11 +23,15 @@ export class RawData {
     public UnitsData: Array<Object>
     public ClassData: Array<Object>
     public SkillList: Array<Object>
+    public PlayerInfo : Object
+    public Orbs: []
     constructor(dataRepo) {
         this.NameText=dataRepo.NameText
         this.UnitsData=dataRepo.UnitsData
         this.ClassData=dataRepo.ClassData
         this.SkillList=dataRepo.SkillList
+        this.PlayerInfo=dataRepo.PlayerInfo
+        this.Orbs=dataRepo.Orbs
     }
 }
 
@@ -150,7 +154,17 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
     return theUnit
 }
 
-
+function parseOrbs(Orbs) {
+   const  orbsIndex=[
+        23,52,54,73,77,
+        2,5,22,25,76,
+        0,3,56,59,72,
+        1,7,27,30,58,
+        21,26,28,53,55,
+        33,35,36,78,85,
+        29,37,84,86,87]
+    const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+}
 export async function parseGameData(rawData: RawData, playerUnitData: Array<Object>) {
 
     await new Promise(resolve=>{
@@ -188,6 +202,16 @@ export async function parseGameData(rawData: RawData, playerUnitData: Array<Obje
     })
 
     // TO DO 获取金钱、魔水、宝珠
+    if (rawData.PlayerInfo != undefined) {
+        parsedGameData.ResStore.Gold = rawData.PlayerInfo.A1
+        parsedGameData.ResStore.MagicCrystal = rawData.PlayerInfo.AE
+
+    }
+
+    if (rawData.Orbs.length > 0) {
+        parsedGameData.ResStore.Orb = parseOrbs(rawData.Orbs)
+    }
+
     return parsedGameData
 }
 

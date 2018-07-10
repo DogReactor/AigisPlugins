@@ -15,6 +15,9 @@ class Cargo {
     public ClassData = new RawData('ClassData')
     public SkillList = new RawData('SkillList')
     public PlayerUnitsData = new RawData('PlayerUnitsData')
+    public PlayerInfo = new RawData('PlayerInfo')
+    public SpiritRepo=new RawData('SpiritRepo')
+    public Orbs = new RawData('Orbs')
     constructor() {
         // TO DO 获取职业、名字表、技能信息
     }
@@ -42,6 +45,18 @@ export function newGameResponse(event, data) {
         case 'allunits-info':
             cargo.PlayerUnitsData.Body = data
             mailBox.sendMessage(Array.of(cargo.PlayerUnitsData))
+            break
+        case 'login-status':
+            cargo.PlayerInfo.Body= data
+            mailBox.sendMessage(cargo.PlayerInfo)
+            break
+        case 'orb-init':
+            cargo.Orbs.Body= data
+            mailBox.sendMessage(cargo.Orbs)
+            break
+        case 'rEphfdmU':
+            cargo.SpiritRepo.Body=data
+            mailBox.sendMessage(cargo.SpiritRepo)
             break
         default: break
     }
