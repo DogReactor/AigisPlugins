@@ -1,22 +1,7 @@
-import { RareStage, GrowthStage, Unit, ResourceStore, Profession } from './gameData.service'
+import { RareList, StageList, RareStage, GrowthStage, Unit, ResourceStore, Profession } from './gameData.service'
 
 
-const RareList = [
-    new RareStage('铁', 1),
-    new RareStage('铜', 1.1),
-    new RareStage('银', 1.2),
-    new RareStage('金', 1.3),
-    new RareStage('白', 1.4),
-    new RareStage('黑', 1.5),
-    new RareStage('蓝', 1.4)
-]
 
-const StageList = [
-    new GrowthStage('CC前', [30, 40, 50, 50, 50, 50, 50]),
-    new GrowthStage('CC后', [30, 40, 55, 60, 70, 80, 65]),
-    new GrowthStage('第一觉醒', [30, 40, 55, 80, 90, 99, 85]),
-    new GrowthStage('第二觉醒', [30, 40, 55, 99, 99, 99, 99])
-]
 
 export class RawData {
     public NameText: Array<Object>
@@ -145,9 +130,11 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
     theUnit.CardID = u.A1
 
     theUnit.Class = classData.find(e => e.ClassKeys.findIndex(u.A2) != -1)
-    theUnit.Rare = RareList[Math.min(rawData.UnitsData.Rare, 6)]
+    theUnit.Rare.ID=Math.min(rawData.UnitsData.Rare, 6)
+    theUnit.Rare = RareList[theUnit.Rare.ID]
+    
     theUnit.Stages = theUnit.Class.Stages.slice(u.A3, theUnit.Rare.MaxGrowth + 1)
-    theUnit.expUp(parseInt(u.A4))
+    theUnit.setExp(parseInt(u.A4))
     theUnit.Favor = u.A5
     theUnit.Skill = { SkillLevel: u.A6, MaxSkillLevel: rawData.SkillList[rawData.UnitsData.ClassLV1SkillID].LevelMax }
 
@@ -156,14 +143,28 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
 
 function parseOrbs(Orbs) {
    const  orbsIndex=[
-        23,52,54,73,77,
-        2,5,22,25,76,
-        0,3,56,59,72,
-        1,7,27,30,58,
-        21,26,28,53,55,
-        33,35,36,78,85,
-        29,37,84,86,87]
+    23,52,54,73,77,
+    2,5,22,25,76,
+    0,3,56,59,72,
+    1,7,27,30,58,
+    21,26,28,53,55,
+    33,35,36,78,85,
+    29,37,84,86,87]
     const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    let orbsStore=[]
+    Orbs.forEach(e => {
+        for(let i=0;i<4;++i) {
+            let n=e&0xFF
+            e=e>>8
+            orbsStore.push(n)
+        }
+    });
+    let orbsNum=[]
+    orbsIndex.forEach(i=>{
+        orbsNum.push(orbsStore[i])
+    })
+
+    return orbsNum
 }
 export async function parseGameData(rawData: RawData, playerUnitData: Array<Object>) {
 

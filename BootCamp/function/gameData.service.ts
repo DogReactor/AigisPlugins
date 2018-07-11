@@ -9,24 +9,22 @@ let expList = [0,32,65,100,135,172,211,250,291,333,418,506,598,693,791,893,998,1
 
 export class GrowthStage {
     public ID: string
-    private MaxLevel: Array<number>
+    public MaxLevel: Array<number>
     constructor(id: string, maxLevel: Array<number>) {
         this.ID = id
         this.MaxLevel = maxLevel
     }
-    getMaxLevel(rare: keyof Array<Object>) {
-        return this.MaxLevel[rare]
-    }
 }
 
 export class RareStage {
-    public ID: string
+    public Name: string
+    public ID:number
     public ExpMult: number
     public AWGoldCost: number
     public OrbCost: number
     public MaxGrowth: number
-    constructor(id: string, expMult: number) {
-        this.ID = id
+    constructor(name: string, expMult: number) {
+        this.Name = name
         this.ExpMult = expMult
         if (expMult < 1.2) {
             this.MaxGrowth = 0
@@ -43,7 +41,22 @@ export class RareStage {
         }
     }
 }
+export const RareList = [
+    new RareStage('铁', 1),
+    new RareStage('铜', 1.1),
+    new RareStage('银', 1.2),
+    new RareStage('金', 1.3),
+    new RareStage('白', 1.4),
+    new RareStage('黑', 1.5),
+    new RareStage('蓝', 1.4)
+]
 
+export const StageList = [
+    new GrowthStage('CC前', [30, 40, 50, 50, 50, 50, 50]),
+    new GrowthStage('CC后', [30, 40, 55, 60, 70, 80, 65]),
+    new GrowthStage('第一觉醒', [30, 40, 55, 80, 90, 99, 85]),
+    new GrowthStage('第二觉醒', [30, 40, 55, 99, 99, 99, 99])
+]
 
 export class Profession {
     public Name: string
@@ -68,7 +81,7 @@ export class Unit {
     public Favor: number
     public Skill = {SkillLevel : 0, MaxSkillLevel : 0}
 
-    expUp(exp:number) {
+    setExp(exp:number) {
         this.Proficiency.TotalExp+=exp;
         let baseExp = Math.round(this.Proficiency.TotalExp / this.Rare.ExpMult);
         //利用公式Exp=0.1793*Lv^2.877)猜一次等级
@@ -84,6 +97,29 @@ export class Unit {
         this.Proficiency.Lv=pLv + 1
         this.Proficiency.NextExp = Math.round(this.Proficiency.TotalExp - expList[pLv] * this.Rare.ExpMult)
     }
+    getExpRes(targetPro) {
+        let expRes=[]
+        if(this.Stages[0].ID!=targetPro.Stage){
+            let i = 1
+            expRes.push(expList[this.Stages[0].MaxLevel[this.Rare.ID]-1]-expList[this.Proficiency.Lv-1]-this.Proficiency.NextExp)
+            while(this.Stages[i]!=targetPro.Stage) {
+                expRes.push(expList[this.Stages[i].MaxLevel[this.Rare.ID]-1])
+                ++i
+            }
+            expRes.push(expList[targetPro.Lv-1])
+        }
+        else {
+            expRes.push(expList[targetPro.Lv-1]-expList[this.Proficiency.Lv-1]-this.Proficiency.NextExp)
+        }
+        expRes.map(e=>e*this.Rare.ExpMult)
+        return expRes
+    }
+    expUp(expDiff:number) {
+        let exp=this.Proficiency.TotalExp+expDiff
+        let expStage=expList.slice(0,this.Stages[0].MaxLevel[this.Rare.ID]+1)
+        
+    }
+
 }
 
 
