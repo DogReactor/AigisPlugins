@@ -1,39 +1,27 @@
 import { RareList, StageList, Unit, ResourceStore, GrowthStage} from './gameData.service'
 
 
-function eatLittleBlessing(unit:Unit, resStore:ResourceStore) {
-    let suc = false
+function eatLittleBlessing(unit:Unit, GlobalExpMult:number) {
     let exp = 0
-    if (resStore.LittleBlessing[unit.Rare.Name] > 0) {
-        resStore.LittleBlessing[unit.Rare.Name] -= 1
-        switch (unit.Rare.Name) {
-            case '银': exp = 3000; break
-            case '金': exp = 18000; break
-            case '白': exp = 19000; break
-            case '黑': exp = 20000; break
-            case '蓝': exp = 19000; break
-            default: break
-        }
-        exp*=resStore.GlobalExpMult
-        suc=true
+    switch (unit.Rare.Name) {
+        case '银': exp = 3000; break
+        case '金': exp = 18000; break
+        case '白': exp = 19000; break
+        case '黑': exp = 20000; break
+        case '蓝': exp = 19000; break
+        default: break
     }
-    unit.expUp(exp)
-    return suc
+    exp*=GlobalExpMult
+    return exp
 }
-function eatPackage(unit:Unit, resStore:ResourceStore, kind = 'Bucket') {
-    let suc =false
+function eatPackage(unit:Unit, GlobalExpMult:number, kind = 'Bucket') {
     let exp = 0
-    if (resStore.RareSpirit[unit.Rare.Name] >= 3 && resStore[kind] > 0) {
-        resStore.LittleBlessing[unit.Rare.Name] -= 3
-        resStore[kind] -= 1
-        exp = kind == 'Bucket' ? 8000 : 40000
-        exp*=resStore.GlobalExpMult
-        suc=true
-    }
-    return suc
+    exp = kind == 'Bucket' ? 8000 : 40000
+    exp*=GlobalExpMult
+    return exp
 }
-function eatIridescence(unit:Unit, resStore:ResourceStore, count:boolean) {
-    let suc = false
+function eatIridescence(unit:Unit, SkillTo=0) {
+    let targetSkillLv=SkillTo<=unit.Skill.SkillLevel?unit.Skill.MaxSkillLevel:SkillTo
     let cost = 0
     const upSkillChance = {
         '3': [1, 0.25],
@@ -41,29 +29,83 @@ function eatIridescence(unit:Unit, resStore:ResourceStore, count:boolean) {
         '10': [1, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.25],
         '16': [1, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25]
     }
-    if (unit.Skill.SkillLevel != unit.Skill.MaxSkillLevel) {
-        upSkillChance[unit.Skill.MaxSkillLevel].slice(unit.Skill.SkillLevel - 1, unit.Skill.MaxSkillLevel).forEach(c => cost += 1 / c)
-        if (resStore.Iridescence >= cost) {
-            resStore.Iridescence -= cost
-            suc = true
-        }
+    if (unit.Skill.SkillLevel != targetSkillLv) {
+        upSkillChance[unit.Skill.MaxSkillLevel].slice(unit.Skill.SkillLevel - 1, targetSkillLv).forEach(c => cost += 1 / c)
     }
-    else {
-        suc = true
-    }
-    return suc
+    return cost
 }
-
-export class GeneratePlan {
+function getAWOrbs(unit:Unit) {
+    let orbsCost=[]
+    let costNum=0
+    unit.Class.AWOrbs.forEach(o=> orbsCost.push([o,unit.Rare.OrbCost]))
+    return orbsCost
+}
+export class TrainPlan {
+    public Lv:number
+    public Stage:string
+    public SkillTo:0
+    public LSpirits:0
+    public DarkBucket:0
+    public Cost={
+        Buckets:[],
+        DarkBucket:[],
+        LSpirits:[],
+        Iridescence:0,
+        Orbs:[]
+    }
     // 需要有一个不实际减少仓库物品的方案
-    getSimplePlan(targetPro, unit:Unit) {
-        let resExp=unit.getExpRes(targetPro)
-        const reducer = (accumulator, currentValue) => accumulator + currentValue;
-        let totalExp=resExp.reduce(reducer)
-        let bucketCount=0
-        while(totalExp>=8000) {
-            totalExp-
+    getSimplePlan(unit:Unit, globalExpMult) {
+        let resExp=unit.getExpRes({Lv:this.Lv,Stage:this.Stage})
+        let totalExp=resExp.reduce( (accumulator, currentValue) => accumulator + currentValue)
+        this.Cost.Buckets=new Array(resExp.length)
+        this.Cost.Buckets.fill(0)
+        this.Cost.LSpirits=new Array(resExp.length)
+        this.Cost.LSpirits.fill(0)
+        this.Cost.DarkBucket=new Array(resExp.length)
+        this.Cost.DarkBucket.fill(0)
+
+        // 吃黑桶
+        let accum=0
+        for(let i in resExp) {
+            let tempE=eatPackage(unit, globalExpMult, 'DarkBucket')
+            while (accum < this.DarkBucket && resExp[i] > tempE) {
+                resExp[i] -= tempE
+                ++this.Cost.DarkBucket[i]
+                ++accum
+            }
         }
+        
+        // 吃小祝福
+        accum=0
+        for(let i in resExp) {
+            let tempE=eatLittleBlessing(unit, globalExpMult)
+            while (accum < this.DarkBucket && resExp[i] > tempE) {
+                resExp[i] -= tempE
+                ++this.Cost.LSpirits[i]
+                ++accum
+            }
+        }
+            
+        // 吃普通白桶
+        for(let i in resExp) {
+            let tempE=eatPackage(unit, globalExpMult)
+            while (resExp[i] > tempE) {
+                resExp[i] -= tempE
+                ++this.Cost.Buckets[i]
+            }
+        }
+
+        // 觉醒宝珠
+        if(unit.Stages[0].ID=='CC后'||unit.Stages[0].ID=='第一觉醒'){
+            if(resExp.length>1) {
+                this.Cost.Orbs=unit.Class.AWOrbs
+                if(resExp.length>2) {
+                    this.Cost.Orbs.map(c=>c[1]*2)
+                }
+            } 
+        }
+
+        this.Cost.Iridescence=eatIridescence(unit,this.SkillTo)
     }
 
 }

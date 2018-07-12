@@ -55,7 +55,29 @@ function parseClassData(classInfo: ClassTreeNode): Profession {
         case '99': theClass.Stages = StageList.slice(1, 2); break
         default: break
     }
-    theClass.AWOrbs.push(classInfo.Info.Data_ExtraAwakeOrb1, classInfo.Info.Data_ExtraAwakeOrb2)
+    // 非递归地遍历职业树
+    let stack = []
+    let k=classInfo
+    while (k != null || stack.length != 0) {
+        while (k != null) {
+            if(k.Info.Data_ExtraAwakeOrb1!=0) {
+                theClass.AWOrbs.push(k.Info.Data_ExtraAwakeOrb1%100-1)
+                if(k.Info.Data_ExtraAwakeOrb2!=0) {
+                    theClass.AWOrbs.push(k.Info.Data_ExtraAwakeOrb2%100-1)
+                }
+                k=null
+                stack=[]
+                break
+            }
+            stack.push(k)
+            k = k.Past[0]
+        }
+        if (stack != [0]) {
+            k = stack.pop()
+            k = k.Past[1]
+        }
+    }
+    
     theClass.ClassKeys = classInfo.ClassKeys
     return theClass
 }
