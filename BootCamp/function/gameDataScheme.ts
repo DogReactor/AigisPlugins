@@ -55,10 +55,13 @@ function parseClassData(classInfo: ClassTreeNode): Profession {
         case '99': theClass.Stages = StageList.slice(1, 2); break
         default: break
     }
-    // 非递归地遍历职业树
+    // 非递归地遍历职业树以找到觉醒珠子
     let stack = []
     let k=classInfo
     while (k != null || stack.length != 0) {
+        if(k.Info.Name=='ヘビーアーマー') {
+            k.Info.AWOrbs.push(1)
+        }
         while (k != null) {
             if(k.Info.Data_ExtraAwakeOrb1!=0) {
                 theClass.AWOrbs.push(k.Info.Data_ExtraAwakeOrb1%100-1)
