@@ -1,5 +1,8 @@
-import { parseGameData, parseSpiritRepo, RawData, ParsedGameData } from './function/gameDataScheme'
+import Vue from 'vue'
+import ElementUI from 'element-ui'
 
+import { parseGameData, parseSpiritRepo, RawData, ParsedGameData } from './function/gameDataScheme'
+import { TrainPlan } from './function/calculator'
 class DataRepo {
     public NameText = []
     public UnitsData = []
@@ -35,3 +38,15 @@ export function run(pluginHelper) {
         }
     })
 }
+
+let planList:Array<TrainPlan>
+
+Vue.use(ElementUI)
+
+const table=Vue.extend({
+    data:{
+        Barrack:gameData.BarrackInfo,
+        Store:gameData.ResStore,
+        planList:planList
+    }
+})

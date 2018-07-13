@@ -34,12 +34,7 @@ function eatIridescence(unit:Unit, SkillTo=0) {
     }
     return cost
 }
-function getAWOrbs(unit: Unit) {
-    let orbsCost = []
-    let costNum = 0
-    unit.Class.AWOrbs.forEach(o => orbsCost.push([o, unit.Rare.OrbCost]))
-    return orbsCost
-}
+
 export class TrainPlan {
     public Lv: number
     public Stage: string

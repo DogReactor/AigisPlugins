@@ -114,11 +114,6 @@ export class Unit {
         expRes.map(e=>e*this.Rare.ExpMult)
         return expRes
     }
-    expUp(expDiff:number) {
-        let exp=this.Proficiency.TotalExp+expDiff
-        let expStage=expList.slice(0,this.Stages[0].MaxLevel[this.Rare.ID]+1)
-        
-    }
 
 }
 
