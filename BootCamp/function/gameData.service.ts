@@ -80,6 +80,7 @@ export class Unit {
     }
     public Favor: number
     public Skill = {SkillLevel : 0, MaxSkillLevel : 0}
+    public Display = true
 
     setExp(exp:number) {
         this.Proficiency.TotalExp+=exp;

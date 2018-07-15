@@ -162,7 +162,6 @@ function parseUnitData(rawData: RawData, u, classData): Unit {
     theUnit.setExp(parseInt(u.A4))
     theUnit.Favor = u.A5
     theUnit.Skill = { SkillLevel: u.A6, MaxSkillLevel: rawData.SkillList[rawData.UnitsData.ClassLV1SkillID].LevelMax }
-
     return theUnit
 }
 

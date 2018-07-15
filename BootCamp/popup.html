@@ -2,11 +2,47 @@
 
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="css/eleUI.css">
+    <link rel="stylesheet" href="./popup.css">
+    <title>王国训练营</title>
 </head>
 
+<body>
+    <div id='app'>
+    <el-header>
+        <el-row>
+            <el-button type="primary" plain>导入配置</el-button>
+            <el-button type="primary" plain>保存配置</el-button>
+        </el-row>
+    </el-header>
+    <el-main>
+        <el-row >
+            <el-button v-for="rareItem in rareList":key='rareItem.Name':autofocus='rareItem.Display' class="RareSelect" width='8%'  type="info"  plain>{{rareItem.Name}}</el-button>
+        </el-row>
+    </el-main>
+</div>
+</body>
 
 
-<script src="./popup.js"></script>
 
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<!-- <script src="./popup.js"></script> -->
+<script>
+        new Vue({
+          el: '#app',
+          data: function() {
+            return { visible: false,
+                rareList: [{ Name: '铁', Display: false },
+                    { Name: '铜', Display: false },
+                    { Name: '银', Display: false },
+                    { Name: '金', Display: true },
+                    { Name: '蓝', Display: true },
+                    { Name: '白', Display: true },
+                    { Name: '黑', Display: true }
+                ]
+            }
+          }
+        })
+      </script>
 </html>
