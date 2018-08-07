@@ -1,4 +1,4 @@
 BootCamp/node_modules/
 ./.vscode
 BootCamp/BootCamp
-*.js
+BootCamp/*.js
