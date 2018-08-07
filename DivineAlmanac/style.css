@@ -1,0 +1,85 @@
+body {
+  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* css样式移植自Acfun黄历 */
+
+table {
+  margin: 0;
+  border-spacing: 0;
+  border-collapse: separate;
+  font-family: "Consolas", "Microsoft Yahei", Arial, sans-serif;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+tbody {
+  height: 50%;
+}
+
+table tr {
+  position: relative;
+}
+
+#pros {
+  background-color: #ffa;
+}
+
+table .left {
+  background-color: #fe4;
+  color: #222;
+  font-size: 32px;
+  font-weight: bold;
+  line-height: normal;
+  width: 30%;
+  text-align: center;
+  vertical-align: middle;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+table .right {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  width: 70%;
+  vertical-align: middle;
+}
+
+#cons {
+  background-color: #ffddd3;
+}
+
+#cons .left {
+  background-color: #f44;
+  color: #fff;
+}
+
+.title {
+  display: block;
+  color: #444;
+  font-size: 18px;
+  width: auto;
+  height: auto;
+  line-height: 1.2;
+  margin: 16px 16px 0;
+  padding: 0;
+}
+
+.desc {
+  display: block;
+  color: #777;
+  font-size: 12px;
+  font-style: italic;
+  width: auto;
+  height: auto;
+  line-height: 1.2;
+  margin: 4px 16px 8px;
+  padding: 0;
+}
+
+.sole {
+  font-size: 150%;
+  text-align: center;
+}

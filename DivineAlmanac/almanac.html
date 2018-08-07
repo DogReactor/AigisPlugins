@@ -2,28 +2,58 @@
 
 <head>
     <meta charset="utf-8">
+
     <title>王国老黄历</title>
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <div id='app'>
-        <ul id="pros" class="pros">
-            <li v-for="pro in pros">
-              <h3>{{ pro.Title }}</h3>
-              <p>{{ pro.PositiveDesc }}/p>
-            </li>
-        </ul>
-        <ul id="cons" class="cons">
-            <li v-for="con in cons">
-              <h3>{{ con.Title }}</h3>
-              <p>{{ con.NegativeDesc }}/p>
-            </li>
-        </ul>
-</div>
+    <table id='app'>
+        <tbody v-if="pros.length!=0">
+            <tr id="pros">
+                <td class="left">宜</td>
+                <td class="right">
+                    <ul v-if="pros.length!=1">
+                        <li v-for="pro in pros">
+                            <p class="title">{{ pro.Title }}</p>
+                            <p class="desc">{{ pro.PositiveDesc }}</p>
+                        </li>
+                    </ul>
+                    <div v-else>
+                        <div v-for="pro in pros">
+                            <p class="title sole">{{ pro.Title }}</p>
+                            <p class="desc  sole">{{ pro.PositiveDesc }}</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+        <tbody v-if="cons.length!=0">
+            <tr id="cons">
+                <td class="left">忌</td>
+                <td class="right">
+                    <ul v-if="cons.length!=1">
+                        <li v-for="con in cons" type="square">
+                            <p class="title">{{ con.Title }}</p>
+                            <p class="desc">{{ con.NegativeDesc }}</p>
+                        </li>
+                    </ul>
+                    <div v-else>
+                        <div v-for="con in cons">
+                            <p class="title sole">{{ con.Title }}</p>
+                            <p class="desc  sole">{{ con.NegativeDesc }}</p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+
+    </table>
 </body>
 
 
 
 <script src="https://unpkg.com/vue/dist/vue.js"></script>
-<script src="./background.js"></script>
+<script src="./popup.js"></script>
+
 </html>
