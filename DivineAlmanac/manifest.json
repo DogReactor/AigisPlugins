@@ -1,0 +1,19 @@
+{
+    "pluginName":"王国老黄历",
+    "author":"BetAlice",
+    "version":"0.1.0",
+    "description":"夏洛特不知道从哪里刨出来的老版历书，可是出版时间是在一千年后！？",
+    "entry":"index.html",
+    "background":"background.js",
+    "game":["aigis"],
+    "windowOption":{
+        "width":1280,
+        "minWidth":780,
+        "height":900,
+        "title":"王国老黄历",
+        "minimizable":true,
+        "maximizable":false,
+        "resizable":true
+    }
+}
+
