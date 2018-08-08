@@ -134,18 +134,27 @@ function run(pluginHelper) {
     }
 
     // 每日当且仅当第一次启动AP时自动弹出黄历窗口
-    recordedDate = window.localStorage.getItem('recordedDate')
-    //recordedDate = ''
+    recordedDate = window.localStorage.getItem('almanacDate')
     if (date.toLocaleDateString() != recordedDate){
-        window.localStorage.setItem('recordedDate', date.toLocaleDateString())
-        let win = new BrowserWindow({ width: 400, height: 320})
-        win.on('closed', function () { win = null })
-        winpath = path.join('file://', __dirname,'/almanac.html')
-        win.loadURL(winpath)//指定渲染的页面
+        window.localStorage.setItem('almanacDate', date.toLocaleDateString())
+        let winOpt = {
+          width: 540,
+          height: 406,
+          title: "王国老黄历",
+          minimizable: true,
+          maximizable: false,
+          resizable: false,
+          useContentSize: true,
+          autoHideMenuBar: true,
+          modal:true,
+          show:false
+        }
+        winPath = path.join(__dirname,'/almanac.html')
+        win = pluginHelper.createWindow(winPath, winOpt)
+        /// vue渲染需要一定时间
         win.once('ready-to-show', () => {
             win.show()
-            
-        })
+          })
     }
 
     pluginHelper.onMessage((msg, sendResponse) => {

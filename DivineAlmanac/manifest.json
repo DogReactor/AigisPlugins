@@ -7,7 +7,7 @@
     "background":"background.js",
     "game":["aigis"],
     "windowOption":{
-        "width":720,
+        "width":540,
         "height":406,
         "title":"王国老黄历",
         "minimizable":true,

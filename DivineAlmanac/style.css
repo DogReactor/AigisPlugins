@@ -78,8 +78,12 @@ table .right {
   margin: 4px 16px 8px;
   padding: 0;
 }
-
 .sole {
-  font-size: 150%;
   text-align: center;
+}
+.sole .title {
+  font-size: 150%;
+}
+.sole .desc {
+  font-size: 120%;
 }
