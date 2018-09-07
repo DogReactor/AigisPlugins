@@ -1,0 +1,42 @@
+body {
+    background-color: rgb(29, 29, 29);
+    color:white;
+}
+
+.large.button {
+    width:12%;
+    margin-right: 1%;
+}
+.rareChoose.large.ui.button {
+    font-size:1.25em;
+    font-family: Kaiti,Georgia, 'Times New Roman', Times, serif;
+}
+#fixdiv {
+    margin-bottom: 14px;
+}
+#planL .message.column{
+    background: transparent;
+    margin-top: 1rem;
+}
+#planL .message.column .column.grid{
+    margin-left: 0.5rem;
+}
+#planL .message.column .column.grid .column{
+    padding: 0.3rem;
+}
+#planL p,#planL .header,#planL .grid .column{
+    color:white;
+    font-family: Kaiti,Georgia, 'Times New Roman', Times, serif;
+}
+th {
+    font-family: SimHei,Georgia, 'Times New Roman', Times, serif;
+}
+td {
+    font-family: Kaiti,Georgia, 'Times New Roman', Times, serif;
+}
+.unitLvInfo{
+    text-align: right;
+}
+#unitSelectedInfo .header{
+    letter-spacing: 0.15em;
+}

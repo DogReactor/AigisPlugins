@@ -1,0 +1,17 @@
+{
+    "pluginName":"KindomCamp",
+    "author":"BetAlice",
+    "version":"0.1.0",
+    "description":"查看单位信息和制订育成计划",
+    "entry":"index.html",
+    "enable":true,
+    "windowOption":{
+        "width":1280,
+        "minWidth":780,
+        "height":800,
+        "title":"王国军名册",
+        "minimizable":true,
+        "maximizable":true,
+        "resizable":true
+    }
+}
