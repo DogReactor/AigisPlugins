@@ -1,26 +1,21 @@
+import { parseInfos} from 'function'
+const remote = require('electron').remote;
+remote.getCurrentWebContents().openDevTools();
 
-// const remote = require('electron').remote;
-// remote.getCurrentWebContents().openDevTools();
-function run(pluginHelper) {
-  var request = new Object();
-  request.sender = 'DeyunGroupWindow';
-  request.body = 'Request Data';
-  var referID = setInterval(function () {
-    pluginHelper.sendMessage(request, (response) => {
-      if (response.flag) {
-        scroll.unitList = response.body.unitList;
-        scroll.classList = response.body.classList;
-        if (unitFilters.length == 0) {
-          let f = new Object();
-          f.__proto__ = Qualification;
-          f.initUnitRange(f.limitOption);
-          unitFilters.push(f);
-          clearInterval(referID);
-          app.fullscreenLoading = false;
-        }
+const hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", "安姆安格瑞", "德云是千年的特色，不得不品尝",
+"人类总要重复同样的错误", "異議あり!!", "所罗门哟，我又回来了", "我现在内心感到悲痛欲绝",
+"意义不明的卡", "出现吧，我的灵魂！", "头脑稍微冷静一下吧", "快住手！这根本不会德云！",
+"这虽然是游戏，但可不是闹着玩的", "但是我拒绝！我最喜欢做的一件事，就是对看上去能德云的队伍，说“不”！",
+"我考虑了一下还是无法接受啊", "堕落！萌死他卡多", "已经没什么好害怕的了", "不也挺好吗？",
+"只要能够德云我随便你搞", "所累哇多卡纳~"]
+
+export function run(pluginHelper) {
+    pluginHelper.sendMessage('Request raw data', (response) => {
+      if(response==='Wait to ready'){}
+      else {
+        [scroll.unitList, scroll.classList]=parseInfos(response)
       }
     });
-  }, 1000);
 };
 
 
@@ -33,8 +28,8 @@ var scroll = {
   location: ["第一兵营", "第二兵营", "第三兵营"]
 }
 
-var Qualification = {
-  limitOption: {
+class Qualification {
+  limitOption={
     isGlobal: true,
     ruleName: "王国招募书",
     num: { top: 15, lowest: 15 },
@@ -44,17 +39,16 @@ var Qualification = {
     stage: ["CC后", "第一觉醒", "第二觉醒"],
     locked: true,
     classRange: []
-  },
-  classExclude: [],
-  unitRange: [],
-  initUnitRange: function (limits) {
+  };
+  unitRange= [];
+  initUnitRange (limits) {
     this.unitRange = scroll.unitList.filter(u => {
-      if (limits.rare.includes(u.rare) &&
-        limits.stage.includes(u.stage) &&
-        limits.location.includes(u.location) &&
-        limits.level.top >= u.level && limits.level.lowest <= u.level &&
-        limits.locked === u.locked &&
-        !limits.classRange.includes(u.class)) {
+      if (limits.rare.includes(u.Rare) &&
+          limits.stage.includes(u.Stage) &&
+          limits.location.includes(u.Location) &&
+          limits.level.top >= u.Lv && limits.level.lowest <= u.Lv &&
+          limits.locked === u.Locked &&
+          limits.classRange.includes(u.Class)) {
         return true;
       } else {
         return false;
@@ -160,18 +154,18 @@ var app = new Vue({
     },
     cardPush(index, table) {
       unitAppointed.push(table[index]);
-      var i = unitExclude.findIndex((u) => { return u.name == table[index].name });
+      var i = unitExclude.findIndex((u) => { return u.Name == table[index].Name });
       if (i > -1) { unitExclude.splice(i, 1); }
     },
     cardPop(index, table) {
       unitExclude.push(table[index]);
-      var i = unitAppointed.findIndex((u) => { return u.name == table[index].name });
+      var i = unitAppointed.findIndex((u) => { return u.Name == table[index].Name });
       if (i > -1) { unitAppointed.splice(i, 1); }
     },
     cardDefault(index, table) {
-      var i = unitAppointed.findIndex((u) => { return u.name == table[index].name });
+      var i = unitAppointed.findIndex((u) => { return u.Name == table[index].Name });
       if (i > -1) { unitAppointed.splice(i, 1); }
-      i = unitExclude.findIndex((u) => { return u.name == table[index].name });
+      i = unitExclude.findIndex((u) => { return u.Name == table[index].Name });
       if (i > -1) { unitExclude.splice(i, 1); }
     },
     clearTable(table) {
@@ -179,12 +173,11 @@ var app = new Vue({
     },
     setUnitRange(index, unitFilters) {
       this.unitCheckList = unitFilters[index].unitRange;
-      this.unitCheckList.forEach(u => { u.cardCheck = '默认'; })
+      this.unitCheckList.forEach(u => { u.cardCheck = '默认' })
       this.cardsFormVisible = true;
     },
     newLimitForm() {
-      var newLimit=new Object();
-      newLimit.__proto__ = Qualification;
+      var newLimit=new Qualification();
       newLimit.classRange = scroll.classList.slice();
       newLimit.initUnitRange(newLimit.limitOption);
       this.limitFormId=unitFilters.length;
@@ -260,12 +253,6 @@ var app = new Vue({
       this.hasteam = true;
 
 
-      var hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", "安姆安格瑞", "德云是千年的特色，不得不品尝",
-        "人类总要重复同样的错误", "異議あり!!", "所罗门哟，我又回来了", "我现在内心感到悲痛欲绝",
-        "意义不明的卡", "出现吧，我的灵魂！", "头脑稍微冷静一下吧", "快住手！这根本不会德云！",
-        "这虽然是游戏，但可不是闹着玩的", "但是我拒绝！我最喜欢做的一件事，就是对看上去能德云的队伍，说“不”！",
-        "我考虑了一下还是无法接受啊", "堕落！萌死他卡多", "已经没什么好害怕的了", "不也挺好吗？",
-        "只要能够德云我随便你搞", "所累哇多卡纳~"];
       this.drawButton = hints[Math.floor(Math.random() * Math.floor(hints.length))];
     }
   }

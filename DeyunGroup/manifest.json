@@ -4,7 +4,7 @@
     "version":"0.1.0",
     "description":"命中注定的德云",
     "entry":"index.html",
-    "background":"roulette.js",
+    "background":"background.js",
     "enable":false,
     "windowOption":{
         "width":1280,

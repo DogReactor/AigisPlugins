@@ -21,7 +21,7 @@
 
                     <el-table-column fixed="right" label="范围设定" align="center">
                         <template slot-scope="scope">
-                            <!-- <el-button  @click.native.prevent="toggleAsGlobal(scope.$index, unitFilters)">设为全局限制</el-button> -->
+                            <el-button  @click.native.prevent="toggleAsGlobal(scope.$index, unitFilters)">设为全局限制</el-button>
                             <el-button :offset="50" @click.native.prevent="setUnitRange(scope.$index, unitFilters)">选择角色范围</el-button>
                         </template>
                     </el-table-column>

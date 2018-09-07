@@ -7,44 +7,115 @@ var rareInfo=[
     {expMut:1.3,ccCost:20,maxLevel:[50,60,80,99]},
     {expMut:1.4,ccCost:25,maxLevel:[50,70,90,99]},
     {expMut:1.5,ccCost:30,maxLevel:[50,80,99,99]},
+    {},
     {expMut:1.4,ccCost:25,maxLevel:[50,65,85,99]},
 ];
-var combMut=1;
-var stageName=['CC前','CC后','第一觉醒','第二觉醒'];
-var UnitsList=new Array();
-var UnitInfo;
-var ClassInfo;
-var SkillInfo;
-var KindomRepo=new Object();
-function Unit(unitObj) {
+const stageName=['CC前','CC后','第一觉醒','第二觉醒']
+const rareName = ["铁", "铜", "银", "金", "白", "黑", "UnKnown" , "蓝"]
+const locationName = ["第一兵营", "第二兵营", "第三兵营"]
+class Unit {
+    ID = 1;
+    Name = '';
+    RealName = '';
+    Class = '';
+    Stage = '';
+    Rare = '';
+    Lv = 1;
+    Cost = 1;
+    Location = '';
+    Locked = false;
+}
 
-    this.cardID = parseInt(unitObj.A1);
-    this.name=UnitInfo[this.cardID].Name;
-    this.rare=Math.min(UnitInfo[this.cardID].Rare,6);
-    this.classID = Math.floor(unitObj.A2);
-    this.classStage=calStage(this.classID);
-    this.affection = parseInt(unitObj.A5);
-    this.skillID = parseInt(unitObj.AD);
-    this.updateCom(parseInt(unitObj.UnitID),parseInt(unitObj.A4),parseInt(unitObj.AA),parseInt(unitObj.A6));
-
-    function updateCom (id,exp,costRedc,skillLv) {
-        this.exp=exp;
-        [this.Lv,this.nextExp]=calLv(this.exp,this.classStage,this.rare);
-        this.unitID=id;
-        this.cost=UnitInfo[this.unitID].CostModValue+ClassInfo[this.classID].Cost+costRedc;
-    this.remainCost=UnitInfo[this.unitID].CostDecValue+costRedc||'MIN';
-    this.skillLv = skillLv;
-    this.skillMaxLv=SkillInfo[this.skillID].LevelMax==this.skillLv? 'MAX':SkillInfo[this.skillID].LevelMax;
-    }
-
-    function updateCC (classID) {
-        this.exp=0;
-        this.classStage+=1;
-        [this.Lv,this.nextExp]=calLv(this.exp,this.classStage,this.rare);
-        this.cost+=ClassInfo[classID].Cost-this.classID;
-        this.classID=classID;
+class ClassNode {
+    Name = '';
+    ID = 0;
+    Pre = -1;
+    Root = -1;
+    Depth = 0;
+    constructor(id, name, maxLevel) {
+        this.ID = id
+        this.Name = name
+        switch(maxLevel){
+            case 50:this.Depth = 0;break
+            case 80:this.Depth = 1;break
+            case 99:this.Depth = 2;break
+        }
+        // 皇帝视为已CC未觉醒
+        if(id===9800){
+            this.Depth = 1
+        }
     }
 }
+
+export function parseInfos(rawData){
+    let unitsList = []
+    let classList = []
+    let classTree = []
+
+    // 初始化职业树
+    rawData.ClassInfos.forEach(c=>{
+        classTree.push(new ClassNode(c.ClassID, c.Name, c.MaxLevel))
+    })
+    // 将职业树的子节点连上父节点
+    rawData.ClassInfos.forEach((c,index)=>{
+        if(c.JobChange!=0){
+            classTree.find(e=> e.ID === c.JobChange).Pre= index
+        }
+        if(c.AwakeType1!=0){
+            let AW1I = classTree.findIndex(e=> e.ID === c.AwakeType1)
+            classTree[AW1I].Pre= index
+            classTree[AW1I].Depth += 1
+        }
+        if(c.AwakeType2!=0){
+            let AW2I = classTree.findIndex(e=> e.ID === c.AwakeType2)
+            classTree[AW2I].Pre= index
+            classTree[AW2I].Depth += 1
+        }
+    })
+
+    // 计算每个职业的根职业节点
+    classTree.forEach(c => {
+        c.Root = c.Pre
+        if (c.Root != -1) {
+            while (classTree[c.Root].Pre != 0) {
+                c.Root = classTree[c.Root].Pre
+            }
+        }
+        // 铜铁职阶个位为1
+        if (c.ClassID%10===1) {
+            c.Root = classTree.findIndex(p=>p.ID ===c.ID-1)
+        }
+    })
+
+
+    classTree.forEach(c=>{
+        if(c.Root===-1){
+            classList.push(c.Name)
+        }
+    })
+    rawData.BarracksInfos.forEach(unitObj => {
+        let unit = new Unit()
+        let cardObj = rawData.UnitInfos.find(u=>u.CardID==unitObj.A1)
+        let classObj = rawData.ClassInfos.find(c=>c.ClassID==unitObj.A2)
+        let clnode = classTree.find(c=>c.ID == unitObj.A2)
+        unit.ID = parseInt(unitObj.A1);
+        unit.Name = rawData.NameText[unit.cardID-1].Message
+        unit.RealName = rawData.NameText[unit.cardID-1].RealName
+        unit.Class = classTree[clnode.Root].Name
+        unit.Stage = stageName[clnode.Depth]
+        unit.Rare = rareName[parseInt(cardObj.Rare)]
+        unit.Lv= calLv(parseInt(unitObj.A4),unit.Stage,unit.Rare)
+        unit.Cost = parseInt(cardObj.CostModValue)+classObj.Cost+parseInt(unitObj.AA)
+        unit.Location = locationName[Math.floor(parseInt(unitObj.AE)/16)]
+        if(parseInt(unitObj.AE)%16!=1) {
+            unit.Locked=true
+        }
+        unitsList.push(unit)
+    });
+
+    return [unitsList,classList]
+}
+
 function calLv(exp,stage,rare) {
     //修正稀有度带来的经验值差异
     var baseExp=Math.round(exp / rareInfo[rare].expMut);
@@ -58,70 +129,11 @@ function calLv(exp,stage,rare) {
         pLv = pLv + 1;
       }
     }
-    var nextExp='MAX';
-    if (pLv+1!=rareInfo[rare].maxLevel[stage]){
-        nextExp = Math.round(expList[pLv + 1] * rareInfo[rare].expMut) - exp;
+    pLv+=1
+    if (pLv>rareInfo[rare].maxLevel[stage]){
+        pLv=rareInfo[rare].maxLevel[stage]
     }
-    return [pLv+1,nextExp]
-}
-function calStage(classID) {
-  switch (ClassInfo[classID].MaxLevel) {
-    case 50:
-      return 0;
-    case 80:
-      return 1;
-    case 99:
-      if (classID % 100 == 70 || classID % 100 == 80) {
-        return 3;
-      } else if (classID == 9800) {
-        return 1;
-      } else {
-        return 2;
-      }
-  }
+    return pLv
 }
 
-function raisePlan(targetStg, targetLv, unit, bSkillAw) {
-  this.targetStg = stageName[targetStg];
-  this.targetLv = targetLv;
-  this.restExp =
-    expList[targetLv - 1] -
-    expList[rareInfo[unit.rare].maxLevel[targetStg] - 1];
 
-  for (let i = Math.min(2, unit.classStage); i <= Math.min(2, targetStg); ++i) {
-    this.restExp += expList[rareInfo[unit.rare].maxLevel[i] - 1];
-  }
-  this.restExp = Math.round(this.restExp * rareInfo[unit.rare].expMut) - unit.exp;
-  this.bucketNum=Math.floor(this.restExp/(8000*combMut));
-  this.feedExp=this.restExp-this.bucketNum*8000*combMut;
-  this.ccGoldCost=0;
-  if(this.rare>2&&targetStg>1) {
-      this.ccGoldCost=(targetStg-Math.max(1,unit.classStage))*rareInfo[unit.rare].ccCost;
-  }
-  if(bSkillAw){this.ccGoldCost+=rareInfo[unit.rare].ccCost;}
-}
-var Operations={
-    setRefData:function(RefData){
-        UnitInfo=RefData.UnitData;
-        for(const i in UnitInfo){
-            UnitInfo[i].Name=RefData.NameText[i];
-        }
-        ClassInfo=RefData.ClassData;
-        SkillInfo=RefData.SkillData;
-        KindomRepo.gold=RefData.StatusData.A1;
-        KindomRepo.magicCrystal=RefData.StatusData.AE;
-    },
-    getUnitList:function(rawList) {
-        for (const i in rawList) {
-            //排除圣灵和王子
-            if (rawList[i].A2>99&&rawList[i].A8) {
-                unitsList.push(new  Unit(rawList[i]));
-            }
-        }
-        return unitsList;
-    },
-    setTarget:function(targetStg,targetLv,unit) {
-
-    }
-};
-module.exports=Operations;
