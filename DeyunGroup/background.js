@@ -1,18 +1,22 @@
-import { ipcRenderer } from 'electron'
-import * as fs from 'fs'
-import * as cp from 'child_process'
-const dataDir = './assets';
+
+const fs = require ('fs')
+const cp = require('child_process')
+
+const dataDir = '.\\plugins\\DeyunGroup\\tools\\assets\\'
 var mailBox = null
-const ALTools = './tools/AL.bat'
+const ALTools = '.\\plugins\\DeyunGroup\\tools\\AL.bat'
 
 class Cargo {
-  ClassInfos = []
-  NameText = []
-  UnitsInfos=[]
-  BarracksInfos=[]
-  isRequired = false
+  constructor(){
+    this.ClassInfos = []
+    this.NameText = []
+    this.UnitsInfos=[]
+    this.BarracksInfos=[]
+    this.isRequired = false
+    this.DataReady={'ClassInfos':false,'NameText':false,'UnitsInfos':false,'BarracksInfos':false}
+  }
   isReady() {
-    if(this.ClassInfosPath.length>0 && this.UnitsInfos.length > 0 && this.BarracksInfos.length>0 && this.NameText.length>0) {
+    if(Object.values(this.DataReady).every(e=>e)) {
       return true
     }
     else {
@@ -23,7 +27,7 @@ class Cargo {
 }
 var cargo=new Cargo()
 
-export function run(pluginHelper) {
+function run(pluginHelper) {
   mailBox = pluginHelper
   mailBox.onMessage((msg, sendResponse) => {
     switch (msg) {
@@ -41,68 +45,91 @@ export function run(pluginHelper) {
 
 function donwloadAssets(key, attr) {
   let url = 'http://assets.millennium-war.net' + key[0]
-  console.log(classInfosPath)
-  let ls = cp.spawn(ALTools, [attr,classInfosPath], {})
-  ls.stderr.on('data', (data) => {
-    console.log('stderr: ' + data);
-  })
+  let ls = cp.spawn(ALTools, [attr, url], {})
+  // ls.stderr.on('data', (data) => {
+  //     console.log('stderr: ' + data);
+  // })
   ls.on('exit', (code) => {
-    if (code === 0) {
-      console.log('Decrypt ' + attr + ' successed');
-      fs.readFile(attr, (err,text)=>{
-        if(err) {
-          Console.log(err)
-        }
-        else{
-          let classes = text.split('\n')
-          let heads = classes.shift().split(' ').filter(s=>s!='')
-          classes.forEach((c)=>{
-            let attrs = c.split(' ').filter(s=>s!='')
-            let cl = {}
-            for(let i in heads){
-              if(attrs[i].startsWith('\"')){
-                attrs[i]=attrs[i].substr(1,-1)
-                cl[heads[i]] = attrs[i]
-              }
+      if (code === 0) {
+          fs.readFile(dataDir+attr, 'utf-8', (err, text) => {
+              if (err) {
+                  console.log(err)
+              } 
               else {
-                cl[heads[i]]=parseInt(attrs[i])
+                  text.trim()
+                  let classes = text.split('\n')
+                  let heads = classes.shift().trim().split(' ').filter(s => s != '')
+                  classes.forEach((c) => {
+                      c.trim()
+                      let attrs = c.split(' ').filter(s => s != '')
+                      for(let i=0;i<attrs.length-1;++i){
+                        if(attrs[i][0]==='\"'&&attrs[i].substr(-1)!='\"')
+                        {
+                          let str=attrs[i+1]
+                          attrs[i]+=' '+str
+                          attrs.splice(i+1,1)
+                          --i
+                        }
+                      }
+                      let cl = {}
+                      if(heads.length<attrs.length) {
+                        for (let i in heads) {
+                          if (attrs[i][0]=='\"') {
+                              attrs[i] = attrs[i].slice(1, -1)
+                              cl[heads[i]] = attrs[i]
+                          } else {
+                              cl[heads[i]] = parseInt(attrs[i])
+                          }
+                      }
+                      cargo[attr].push(cl)
+                      }
+
+                  })
+                  cargo.DataReady[attr]=true
               }
-            }
-            cargo[attr].push(cl)
           })
-        }
-      })
-    }
-    else {
-      console.log('Failed to decrypt ' + attr, ' ALTools exited with code ' + code);
-    }
+      } else {
+          console.log('Failed to decrypt ' + attr, ' ALTools exited with code ' + code);
+      }
   })
 }
-
-ipcRenderer.on('fileList', (event, obj, tabId) => {
-  let classInfoKey = Object.entries(obj).find(e => { return e[1] === 'PlayerUnitTable.aar' })
-  donwloadAssets(classInfoKey, 'ClassInfos')
-  let nameInfoKey = Object.entries(obj).find(e => { return e[1] === 'NameText.atb' })
-  donwloadAssets(nameInfoKey, 'NameText')
-})
-
-export function newGameResponse(event, data) {
+function newGameResponse(event, data) {
   switch (event) {
     case 'allcards-info':
-      cargo.UnitsInfos = data
+
+      fs.writeFile('cards',JSON.stringify(data),err=>{})
+      let num = data['Ability'].length
+      for (let i=0;i<num;++i){
+        cargo.UnitsInfos[i]={}
+      }
+      Object.entries(data).forEach(attr=>{
+        console.log(attr)
+        cargo.UnitsInfos.forEach((u,index)=>{
+          u[attr[0]]=attr[1][index]
+        })
+      })
+      cargo.DataReady['UnitsInfos']=true
       break
     case 'allunits-info':
       cargo.BarracksInfos = data.filter(u=>{
         let classID = parseInt(u.A2)
         // 排除王子和圣灵
-        if(( u.A2.startsWith('9')&&classID != 9800 ) || classID<100) {
+        if(( u.A2[0]=='9'&&classID != 9800 ) || classID<100) {
           return false
         }
         else {
           return true
         }
       })
+      cargo.DataReady['BarracksInfos']=true
       break
+    case 'file-list':
+      let classInfoKey = Object.entries(data).find(e => { return e[1] === 'PlayerUnitTable.aar' })
+      donwloadAssets(classInfoKey, 'ClassInfos')
+      let nameInfoKey = Object.entries(data).find(e => { return e[1] === 'NameText.atb' })
+      donwloadAssets(nameInfoKey, 'NameText')
+      break
+    default:break
   }
   if(cargo.isReady()&&cargo.isRequired){
     cargo.isRequired=false
@@ -111,10 +138,12 @@ export function newGameResponse(event, data) {
 }
 
 
-function initInfos(classInfo, nameInfo, unitsInfo, barracksInfo) {
-  classList = classInfo.filter(c => {
-    c.classID % 100 == 0;
-  });
+
+
+module.exports = {
+  run:run,
+  newGameResponse:newGameResponse
+}
 
 
 

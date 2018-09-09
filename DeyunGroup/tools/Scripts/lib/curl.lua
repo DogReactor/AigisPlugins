@@ -8,9 +8,11 @@ local verbose = true
 
 local function execute(...)
   local command = curlpath
+  
   for i = 1, select('#', ...) do
     command = command .. " " .. tostring(select(i, ...))
   end
+
   assert(os.execute("cmd /C " .. command .. " 1>&2"))
 end
 

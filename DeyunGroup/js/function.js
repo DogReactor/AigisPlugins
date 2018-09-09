@@ -14,31 +14,32 @@ const stageName=['CC前','CC后','第一觉醒','第二觉醒']
 const rareName = ["铁", "铜", "银", "金", "白", "黑", "UnKnown" , "蓝"]
 const locationName = ["第一兵营", "第二兵营", "第三兵营"]
 class Unit {
-    ID = 1;
-    Name = '';
-    RealName = '';
-    Class = '';
-    Stage = '';
-    Rare = '';
-    Lv = 1;
-    Cost = 1;
-    Location = '';
-    Locked = false;
+    constructor(){
+        this.ID = 1;
+        this.Name = '';
+        this.RealName = '';
+        this.Class = '';
+        this.Stage = '';
+        this.Rare = '';
+        this.Lv = 1;
+        this.Cost = 1;
+        this.Location = '';
+        this.Locked = false;
+    }
 }
 
 class ClassNode {
-    Name = '';
-    ID = 0;
-    Pre = -1;
-    Root = -1;
-    Depth = 0;
-    constructor(id, name, maxLevel) {
+    constructor(id, name, maxLevel, loc) {
         this.ID = id
         this.Name = name
+        this.Root = loc
+        this.Pre= loc
+        this.Index=loc
         switch(maxLevel){
             case 50:this.Depth = 0;break
             case 80:this.Depth = 1;break
             case 99:this.Depth = 2;break
+            default: this.Depth = 0;break
         }
         // 皇帝视为已CC未觉醒
         if(id===9800){
@@ -47,27 +48,31 @@ class ClassNode {
     }
 }
 
-export function parseInfos(rawData){
+function parseInfos(rawData){
     let unitsList = []
     let classList = []
     let classTree = []
 
     // 初始化职业树
     rawData.ClassInfos.forEach(c=>{
-        classTree.push(new ClassNode(c.ClassID, c.Name, c.MaxLevel))
+        let loc = classTree.length
+        classTree.push(new ClassNode(c.ClassID, c.Name, c.MaxLevel,loc))
     })
     // 将职业树的子节点连上父节点
     rawData.ClassInfos.forEach((c,index)=>{
         if(c.JobChange!=0){
-            classTree.find(e=> e.ID === c.JobChange).Pre= index
+            let CCI = rawData.ClassInfos.findIndex(e=> e.ClassID === c.JobChange)
+            classTree[CCI].Pre= index
         }
         if(c.AwakeType1!=0){
-            let AW1I = classTree.findIndex(e=> e.ID === c.AwakeType1)
+            // console.log(typeof(c.ClassID),typeof(c.AwakeType1))
+            // console.log(c.ClassID,c.AwakeType1)
+            let AW1I = rawData.ClassInfos.findIndex(e=> e.ClassID === c.AwakeType1)
             classTree[AW1I].Pre= index
             classTree[AW1I].Depth += 1
         }
         if(c.AwakeType2!=0){
-            let AW2I = classTree.findIndex(e=> e.ID === c.AwakeType2)
+            let AW2I = rawData.ClassInfos.findIndex(e=> e.ClassID === c.AwakeType2)
             classTree[AW2I].Pre= index
             classTree[AW2I].Depth += 1
         }
@@ -76,13 +81,13 @@ export function parseInfos(rawData){
     // 计算每个职业的根职业节点
     classTree.forEach(c => {
         c.Root = c.Pre
-        if (c.Root != -1) {
-            while (classTree[c.Root].Pre != 0) {
+        if (c.Root != c.Index) {
+            while (classTree[c.Root].Pre != classTree[c.Root].Index) {
                 c.Root = classTree[c.Root].Pre
             }
         }
         // 铜铁职阶个位为1
-        if (c.ClassID%10===1) {
+        if (c.ID%10===1) {
             c.Root = classTree.findIndex(p=>p.ID ===c.ID-1)
         }
     })
@@ -95,14 +100,15 @@ export function parseInfos(rawData){
     })
     rawData.BarracksInfos.forEach(unitObj => {
         let unit = new Unit()
-        let cardObj = rawData.UnitInfos.find(u=>u.CardID==unitObj.A1)
+        let cardObj = rawData.UnitsInfos.find(u=>u.CardID==unitObj.A1)
         let classObj = rawData.ClassInfos.find(c=>c.ClassID==unitObj.A2)
         let clnode = classTree.find(c=>c.ID == unitObj.A2)
-        unit.ID = parseInt(unitObj.A1);
-        unit.Name = rawData.NameText[unit.cardID-1].Message
-        unit.RealName = rawData.NameText[unit.cardID-1].RealName
+        unit.Name = rawData.NameText[unit.ID-1].Message
+        unit.RealName = rawData.NameText[unit.ID-1].RealName
+        
         unit.Class = classTree[clnode.Root].Name
         unit.Stage = stageName[clnode.Depth]
+        console.log(cardObj)
         unit.Rare = rareName[parseInt(cardObj.Rare)]
         unit.Lv= calLv(parseInt(unitObj.A4),unit.Stage,unit.Rare)
         unit.Cost = parseInt(cardObj.CostModValue)+classObj.Cost+parseInt(unitObj.AA)
@@ -137,3 +143,6 @@ function calLv(exp,stage,rare) {
 }
 
 
+module.exports = {
+    parseInfos:parseInfos
+}
