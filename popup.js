@@ -237,7 +237,7 @@ var app = new Vue({
       }
     },
     clearTable(table) {
-      table.splice(0, table.length)
+      table.splice(0)
     },
     setUnitRange(index, unitFilters) {
       this.unitCheckList = unitFilters[index].unitRange
