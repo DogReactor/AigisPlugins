@@ -29,20 +29,26 @@ class Unit {
 }
 
 class ClassNode {
-    constructor(id, name, maxLevel, loc) {
-        this.ID = id
-        this.Name = name
-        this.Root = loc
+    constructor(c, loc) {
+        this.ID = c.ClassID
+        this.Name = c.Name
+        this.Root = c.MaxLevel
         this.Pre= loc
         this.Index=loc
-        switch(maxLevel){
+        if(c.AtkArea>40) {
+            this.AttackMode='远程'
+        }
+        else {
+            this.AttackMode='近战'
+        }
+        switch(c.MaxLevel){
             case 50:this.Depth = 0;break
             case 80:this.Depth = 1;break
             case 99:this.Depth = 2;break
             default: this.Depth = 0;break
         }
         // 皇帝视为已CC未觉醒
-        if(id===9800){
+        if(this.ID===9800){
             this.Depth = 1
         }
     }
@@ -56,7 +62,7 @@ function parseInfos(rawData){
     // 初始化职业树
     rawData.ClassInfos.forEach(c=>{
         let loc = classTree.length
-        classTree.push(new ClassNode(c.ClassID, c.Name, c.MaxLevel,loc))
+        classTree.push(new ClassNode(c, loc))
     })
     // 将职业树的子节点连上父节点
     rawData.ClassInfos.forEach((c,index)=>{
@@ -93,24 +99,21 @@ function parseInfos(rawData){
     })
 
 
-    classTree.forEach(c=>{
-        if(c.Root===-1){
-            classList.push(c.Name)
-        }
-    })
+    let distinctClassCollect = new Set()
     rawData.BarracksInfos.forEach(unitObj => {
         let unit = new Unit()
         let cardObj = rawData.UnitsInfos.find(u=>u.CardID==unitObj.A1)
         let classObj = rawData.ClassInfos.find(c=>c.ClassID==unitObj.A2)
         let clnode = classTree.find(c=>c.ID == unitObj.A2)
+        unit.ID=parseInt(unitObj.A1)
         unit.Name = rawData.NameText[unit.ID-1].Message
         unit.RealName = rawData.NameText[unit.ID-1].RealName
         
         unit.Class = classTree[clnode.Root].Name
+        distinctClassCollect.add(classTree[clnode.Root])
         unit.Stage = stageName[clnode.Depth]
-        console.log(cardObj)
         unit.Rare = rareName[parseInt(cardObj.Rare)]
-        unit.Lv= calLv(parseInt(unitObj.A4),unit.Stage,unit.Rare)
+        unit.Lv= calLv(parseInt(unitObj.A4),clnode.Depth,parseInt(cardObj.Rare))
         unit.Cost = parseInt(cardObj.CostModValue)+classObj.Cost+parseInt(unitObj.AA)
         unit.Location = locationName[Math.floor(parseInt(unitObj.AE)/16)]
         if(parseInt(unitObj.AE)%16!=1) {
@@ -119,6 +122,13 @@ function parseInfos(rawData){
         unitsList.push(unit)
     });
 
+    
+    distinctClassCollect.forEach(c=>{
+        classList.push({
+            Name: c.Name,
+            AttackMode: c.AttackMode
+        })
+    })
     return [unitsList,classList]
 }
 
@@ -126,7 +136,7 @@ function calLv(exp,stage,rare) {
     //修正稀有度带来的经验值差异
     var baseExp=Math.round(exp / rareInfo[rare].expMut);
     //利用公式Exp=0.1793*Lv^2.877)猜一次等级
-    var pLv=Math.min(Math.round(Math.pow(baseexp / 0.1793, 1 / 2.877)), 98);
+    var pLv=Math.min(Math.round(Math.pow(baseExp / 0.1793, 1 / 2.877)), 98);
     //与猜测等级附近的等级比较经验值，找出准确等级
     while ((expList[pLv] > exp || expList[pLv + 1] <= exp) && expList[99] > exp) {
       if (expList[pLv] > exp) {

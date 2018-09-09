@@ -103,7 +103,6 @@ function newGameResponse(event, data) {
         cargo.UnitsInfos[i]={}
       }
       Object.entries(data).forEach(attr=>{
-        console.log(attr)
         cargo.UnitsInfos.forEach((u,index)=>{
           u[attr[0]]=attr[1][index]
         })
@@ -114,7 +113,7 @@ function newGameResponse(event, data) {
       cargo.BarracksInfos = data.filter(u=>{
         let classID = parseInt(u.A2)
         // 排除王子和圣灵
-        if(( u.A2[0]=='9'&&classID != 9800 ) || classID<100) {
+        if(( u.A2[0]==='9'&&classID != 9800 ) || classID<100) {
           return false
         }
         else {

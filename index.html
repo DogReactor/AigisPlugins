@@ -23,6 +23,7 @@
                         <template slot-scope="scope">
                             <el-button  @click.native.prevent="toggleAsGlobal(scope.$index, unitFilters)">设为全局限制</el-button>
                             <el-button :offset="50" @click.native.prevent="setUnitRange(scope.$index, unitFilters)">选择角色范围</el-button>
+                            <el-button :offset="50" @click.native.prevent="setClassRange(scope.$index, unitFilters)">选择职业范围</el-button>
                         </template>
                     </el-table-column>
                     <el-table-column fixed="right" label="操作" align="center">
@@ -50,26 +51,44 @@
 
                 <div v-if="hasteam">
                     <el-table :data="team" border style="width: 100%;margin-top:50" stripe>
-                        <el-table-column prop="name" label="名字" align="center"></el-table-column>
-                        <el-table-column prop="class" label="职业" align="center" width="240"></el-table-column>
-                        <el-table-column prop="level" label="等级" align="center" width="120"></el-table-column>
-                        <el-table-column prop="rare" label="稀有度" align="center" width="180"></el-table-column>
+                        <el-table-column prop="Name" label="名字" align="center"></el-table-column>
+                        <el-table-column prop="Class" label="职业" align="center" width="240"></el-table-column>
+                        <el-table-column prop="Lv" label="等级" align="center" width="120"></el-table-column>
+                        <el-table-column prop="Rare" label="稀有度" align="center" width="180"></el-table-column>
                     </el-table>
                 </div>
 
                 <el-dialog title="备选名单" :visible.sync="cardsFormVisible" width="900">
                     <el-table :data="unitCheckList" border stripe max-height="500">
-                        <el-table-column prop="name" label="名字" align="center"></el-table-column>
-                        <el-table-column prop="class" label="职业" align="center" width="180"></el-table-column>
-                        <el-table-column prop="level" label="等级" align="center" width="80"></el-table-column>
-                        <el-table-column prop="rare" label="稀有度" align="center" width="100"></el-table-column>
+                        <el-table-column prop="Name" label="名字" align="center"></el-table-column>
+                        <el-table-column prop="Class" label="职业" align="center" width="180"></el-table-column>
+                        <el-table-column prop="Lv" label="等级" align="center" width="80"></el-table-column>
+                        <el-table-column prop="Rare" label="稀有度" align="center" width="100"></el-table-column>
                         <el-table-column fixed="right" label="操作" align="center" width="220">
                             <template slot-scope="cardscope">
                                 <div>
                                     <el-radio-group v-model="unitCheckList[cardscope.$index].cardCheck" size="small">
-                                        <el-radio-button @click.native.prevent="cardPush(cardscope.$index, unitCheckList)" label="必选"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="cardPop(cardscope.$index, unitCheckList)" label="移除"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="cardDefault(cardscope.$index, unitCheckList)" label="随机"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '必选')" label="必选"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '移除')" label="移除"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '随机')" label="随机"></el-radio-button>
+                                    </el-radio-group>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-dialog>
+                
+                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600">
+                    <el-table :data="classCheckList" border stripe max-height="500">
+                        <el-table-column prop="Name" label="职业名" align="center"></el-table-column>
+                        <el-table-column prop="AttackMode" label="站位" align="center" width="80"></el-table-column>
+                        <el-table-column fixed="right" label="操作" align="center" width="220">
+                            <template slot-scope="classscope">
+                                <div>
+                                    <el-radio-group v-model="classCheckList[classscope.$index].classCheck" size="small">
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '必选')" label="必选"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '移除')" label="移除"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '随机')" label="随机"></el-radio-button>
                                     </el-radio-group>
                                 </div>
                             </template>
