@@ -13,6 +13,27 @@ var rareInfo=[
 const stageName=['CC前','CC后','第一觉醒','第二觉醒']
 const rareName = ["铁", "铜", "银", "金", "白", "黑", "UnKnown" , "蓝"]
 const locationName = ["第一兵营", "第二兵营", "第三兵营"]
+
+function calLv(exp,stage,rare) {
+    //修正稀有度带来的经验值差异
+    var baseExp=Math.round(exp / rareInfo[rare].expMut);
+    //利用公式Exp=0.1793*Lv^2.877)猜一次等级
+    var pLv=Math.min(Math.round(Math.pow(baseExp / 0.1793, 1 / 2.877)), 98);
+    //与猜测等级附近的等级比较经验值，找出准确等级
+    while ((expList[pLv] > exp || expList[pLv + 1] <= exp) && expList[99] > exp) {
+      if (expList[pLv] > exp) {
+        pLv = pLv - 1;
+      } else {
+        pLv = pLv + 1;
+      }
+    }
+    pLv+=1
+    if (pLv>rareInfo[rare].maxLevel[stage]){
+        pLv=rareInfo[rare].maxLevel[stage]
+    }
+    return pLv
+}
+
 class Unit {
     constructor(){
         this.ID = 1;
@@ -54,31 +75,29 @@ class ClassNode {
     }
 }
 
-function parseInfos(rawData){
-    let unitsList = []
-    let classList = []
+function parseClassTree(ClassInfos){
     let classTree = []
-
+    
     // 初始化职业树
-    rawData.ClassInfos.forEach(c=>{
+    ClassInfos.forEach(c=>{
         let loc = classTree.length
         classTree.push(new ClassNode(c, loc))
     })
     // 将职业树的子节点连上父节点
-    rawData.ClassInfos.forEach((c,index)=>{
+    ClassInfos.forEach((c,index)=>{
         if(c.JobChange!=0){
-            let CCI = rawData.ClassInfos.findIndex(e=> e.ClassID === c.JobChange)
+            let CCI = ClassInfos.findIndex(e=> e.ClassID === c.JobChange)
             classTree[CCI].Pre= index
         }
         if(c.AwakeType1!=0){
             // console.log(typeof(c.ClassID),typeof(c.AwakeType1))
             // console.log(c.ClassID,c.AwakeType1)
-            let AW1I = rawData.ClassInfos.findIndex(e=> e.ClassID === c.AwakeType1)
+            let AW1I = ClassInfos.findIndex(e=> e.ClassID === c.AwakeType1)
             classTree[AW1I].Pre= index
             classTree[AW1I].Depth += 1
         }
         if(c.AwakeType2!=0){
-            let AW2I = rawData.ClassInfos.findIndex(e=> e.ClassID === c.AwakeType2)
+            let AW2I = ClassInfos.findIndex(e=> e.ClassID === c.AwakeType2)
             classTree[AW2I].Pre= index
             classTree[AW2I].Depth += 1
         }
@@ -98,6 +117,12 @@ function parseInfos(rawData){
         }
     })
 
+    return classTree
+}
+function parseInfos(rawData){
+    let unitsList = []
+    let classList = []
+    let classTree = parseClassTree(rawData.ClassInfos)
 
     let distinctClassCollect = new Set()
     rawData.BarracksInfos.forEach(unitObj => {
@@ -132,27 +157,61 @@ function parseInfos(rawData){
     return [unitsList,classList]
 }
 
-function calLv(exp,stage,rare) {
-    //修正稀有度带来的经验值差异
-    var baseExp=Math.round(exp / rareInfo[rare].expMut);
-    //利用公式Exp=0.1793*Lv^2.877)猜一次等级
-    var pLv=Math.min(Math.round(Math.pow(baseExp / 0.1793, 1 / 2.877)), 98);
-    //与猜测等级附近的等级比较经验值，找出准确等级
-    while ((expList[pLv] > exp || expList[pLv + 1] <= exp) && expList[99] > exp) {
-      if (expList[pLv] > exp) {
-        pLv = pLv - 1;
-      } else {
-        pLv = pLv + 1;
+
+function lotteryMachine(unitFilters, globalUnitRange){
+    //对全局限制的池子求交集
+    let pool = new Set(unitFilters[0].unitRange)
+    for (let p = 0; p < unitFilters.length; ++p) {
+      if (unitFilters[p].limitOption.isGlobal) {
+        let a = new Set(unitFilters[p].unitRange)
+        let b = pool
+        pool = new Set([...a].filter(e => b.has(e)))
       }
     }
-    pLv+=1
-    if (pLv>rareInfo[rare].maxLevel[stage]){
-        pLv=rareInfo[rare].maxLevel[stage]
+    let globalMin = 0
+    let globalMax = 15
+    unitFilters.forEach(l => {
+      globalMax = Math.min(globalMax, parseInt(l.limitOption.num.top))
+      globalMin = Math.max(globalMin, parseInt(l.limitOption.num.lowest))
+    })
+    // //将非全局限制的池子约束为全局池子的子集
+    // for (let p in unitFilters) {
+    //   let subGroup=new Set()
+    //   for (let u in p.unitRange) {
+    //     if (pool.has(u)) {
+    //       subGroup.add(u)
+    //     }
+    //   }
+    //   p.unitRange=Array.from(subGroup)
+    // }
+  
+    let exclude = new Set(globalUnitRange.unitsExcluded)
+    let appointed = new Set(globalUnitRange.unitsAppointed)
+    pool = new Set([...pool].filter(e => !exclude.has(e)))
+    pool = new Set([...pool].filter(e => !appointed.has(e)))
+    pool = Array.from(pool)
+    //随机重排备选池
+    let j=0 // 不要把这个let放到下面去，可能会被报‘j is not defined’， FAK js
+    for (let i = pool.length - 1; i > 0; i--) {
+      j = Math.floor(Math.random() * (i + 1))
+      [pool[i], pool[j]] = [pool[j], pool[i]]
     }
-    return pLv
-}
-
+    let candidates = new Array()
+    candidates = candidates.concat(globalUnitRange.unitsAppointed)
+  
+    let theNum = globalMin + Math.floor(Math.random() * (globalMax - globalMin))
+  
+    let iter = 0
+    while (candidates.length < theNum && iter < pool.length) {
+      candidates.push(pool[iter])
+      ++iter
+    }
+  
+    return candidates
+  
+  }
 
 module.exports = {
-    parseInfos:parseInfos
+    parseInfos:parseInfos,
+    lotteryMachine:lotteryMachine
 }

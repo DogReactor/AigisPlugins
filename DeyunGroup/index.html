@@ -64,10 +64,10 @@
                         <el-table-column prop="Class" label="职业" align="center" width="180"></el-table-column>
                         <el-table-column prop="Lv" label="等级" align="center" width="80"></el-table-column>
                         <el-table-column prop="Rare" label="稀有度" align="center" width="100"></el-table-column>
-                        <el-table-column fixed="right" label="操作" align="center" width="220">
+                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="cardscope">
                                 <div>
-                                    <el-radio-group v-model="unitCheckList[cardscope.$index].cardCheck" size="small">
+                                    <el-radio-group v-model="unitCheckState[cardscope.$index]" size="small">
                                         <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '必选')" label="必选"></el-radio-button>
                                         <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '移除')" label="移除"></el-radio-button>
                                         <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '随机')" label="随机"></el-radio-button>
@@ -79,16 +79,16 @@
                 </el-dialog>
                 
                 <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600">
-                    <el-table :data="classCheckList" border stripe max-height="500">
+                    <el-table :data="scroll.classList" border stripe max-height="500">
                         <el-table-column prop="Name" label="职业名" align="center"></el-table-column>
                         <el-table-column prop="AttackMode" label="站位" align="center" width="80"></el-table-column>
-                        <el-table-column fixed="right" label="操作" align="center" width="220">
+                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="classscope">
                                 <div>
-                                    <el-radio-group v-model="classCheckList[classscope.$index].classCheck" size="small">
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '必选')" label="必选"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '移除')" label="移除"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, classCheckList, '随机')" label="随机"></el-radio-button>
+                                    <el-radio-group v-model="classCheckState[classscope.$index]" size="small">
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '必选')" label="必选"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '移除')" label="移除"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '随机')" label="随机"></el-radio-button>
                                     </el-radio-group>
                                 </div>
                             </template>

@@ -1,4 +1,4 @@
-const { parseInfos} = require('./js/function') 
+const { parseInfos, lotteryMachine } = require('./js/function') 
 const remote = require('electron').remote
 remote.getCurrentWebContents().openDevTools()
 
@@ -35,6 +35,12 @@ function run(pluginHelper) {
 
 
 
+var globalUnitRange = {
+  unitsExcluded:[],
+  unitsAppointed:[]
+}
+
+var unitFilters = new Array()
 
 class Qualification {
 
@@ -48,21 +54,22 @@ class Qualification {
       location: ["第一兵营"],
       stage: ["CC后", "第一觉醒", "第二觉醒"],
       locked: true,
-      classRange: [],
+      classCheck: [],
       classExcluded: [],
-      classAppointed:[],
+      classAppointed:[]
     }
+    this.limitOption.classCheck=scroll.classList.map(c=>'随机')
     this.unitRange= []
 
   }
-  initUnitRange (limits) {
+  updateUnitRange () {
     this.unitRange = scroll.unitList.filter(u => {
-      if (limits.rare.includes(u.Rare) &&
-          limits.stage.includes(u.Stage) &&
-          limits.location.includes(u.Location) &&
-          limits.level.top >= u.Lv && limits.level.lowest <= u.Lv &&
-          limits.locked === u.Locked &&
-          limits.classRange.includes(u.Class)) {
+      if (this.limitOption.rare.includes(u.Rare) &&
+      this.limitOption.stage.includes(u.Stage) &&
+      this.limitOption.location.includes(u.Location) &&
+      this.limitOption.level.top >= u.Lv && this.limitOption.level.lowest <= u.Lv &&
+      this.limitOption.locked === u.Locked &&
+      !this.limitOption.classExcluded.includes(u.Class)) {
         return true
       } else {
         return false
@@ -71,12 +78,6 @@ class Qualification {
   }
 }
 
-var globalUnitRange = {
-  unitsExcluded:[],
-  unitsAppointed:[]
-}
-
-var unitFilters = new Array()
 // for(let i=0;i<5;++i)
 // {
 //   let f=new Object()
@@ -116,9 +117,11 @@ var app = new Vue({
       hasteam: false,
       scroll,
       unitFilters,
+      filterIndex:0,
       team: [],
       unitCheckList: [],
-      classCheckList: [],
+      unitCheckState:[],
+      classCheckState:[],
       limitFormVisible: false,
       cardsFormVisible: false,
       classFormVisible: false,
@@ -186,7 +189,7 @@ var app = new Vue({
             break
         }
         if (state != 'default') {
-          let i = globalUnitRange[state].findIndex(e => e.Name === cl.Name)
+          let i = globalUnitRange[state].findIndex(e => e.Name === table[index].Name)
           if (i > -1) {
             globalUnitRange[state].splice(i, 1)
           }
@@ -201,13 +204,14 @@ var app = new Vue({
           default:
             break
         }
+        table[index].cardCheck=change
+        Vue.set(this.unitCheckState, index, change)
       }
     },
-    classChangeCheck(index, table, change) {
-      if (change != table[index].classCheck) {
-        let limitI = table[index].limitIndex
+    classChangeCheck(index, change) {
+      if (change != this.classCheckState[index]) {
         let state = 'default'
-        switch (table[index].classCheck) {
+        switch (this.classCheckState[index]) {
           case '必选':
             state = 'classAppointed'
             break
@@ -218,22 +222,25 @@ var app = new Vue({
             break
         }
         if (state != 'default') {
-          let i = unitFilters[limitI][state].findIndex(e => e.Name === cl.Name)
+          let i = unitFilters[this.filterIndex]['limitOption'][state].findIndex(e => e.Name === scroll.classList[index].Name)
           if (i > -1) {
-            unitFilters[limitI][state].splice(i, 1)
+            unitFilters[this.filterIndex]['limitOption'][state].splice(i, 1)
           }
         }
 
         switch (change) {
           case '必选':
-            unitFilters[limitI].classAppointed.push(table[index])
+            unitFilters[this.filterIndex].limitOption.classAppointed.push(scroll.classList[index])
             break
           case '移除':
-            unitFilters[limitI].classExcluded.push(table[index])
+            unitFilters[this.filterIndex].limitOption.classExcluded.push(scroll.classList[index])
             break
           default:
             break
         }
+        Vue.set(this.classCheckState, index, change)
+        unitFilters[this.filterIndex].updateUnitRange()
+        return 
       }
     },
     clearTable(table) {
@@ -241,21 +248,21 @@ var app = new Vue({
     },
     setUnitRange(index, unitFilters) {
       this.unitCheckList = unitFilters[index].unitRange
-      this.unitCheckList.forEach(u => { u.cardCheck = '默认' })
+      if(!Object.keys(this.unitCheckList[0]).includes('cardCheck')){
+        this.unitCheckList.forEach(u => { u.cardCheck = '随机' })
+      }
+      this.unitCheckState=this.unitCheckList.map(x=>x)
       this.cardsFormVisible = true
     },
     setClassRange(index, unitFilters) {
-      this.classCheckList=unitFilters[index].limitOption.classRange
-      this.classCheckList.forEach(u => {
-        u.classCheck = '默认'
-        u.limitIndex = index
-      })
+      this.filterIndex=index
+      this.classCheckState=unitFilters[index].limitOption.classCheck
       this.classFormVisible = true
     },
     newLimitForm() {
       var newLimit=new Qualification()
-      newLimit.limitOption.classRange = scroll.classList.slice(0,scroll.classList.length)
-      newLimit.initUnitRange(newLimit.limitOption)
+      newLimit.limitOption.classCheck = scroll.classList.slice(0)
+      newLimit.updateUnitRange()
       this.limitFormId=unitFilters.length
       unitFilters.push(newLimit)
       this.limitForm = unitFilters[this.limitFormId].limitOption
@@ -265,7 +272,7 @@ var app = new Vue({
       this.$refs["limitForm"].validate(valid => {
         if (valid) {
           unitFilters[this.limitFormId].limitOption = form
-          unitFilters[this.limitFormId].initUnitRange(form)
+          unitFilters[this.limitFormId].updateUnitRange(form)
           this.limitFormVisible = false
         } else {
           return false
@@ -278,54 +285,8 @@ var app = new Vue({
         return false
       }
 
-      //对全局限制的池子求交集
-      var pool = new Set(unitFilters[0].unitRange)
-      for (let p = 0; p < unitFilters.length; ++p) {
-        if (unitFilters[p].limitOption.isGlobal) {
-          let a = new Set(unitFilters[p].unitRange)
-          let b = pool
-          pool = new Set([...a].filter(e => b.has(e)))
-        }
-      }
-      var globalMin = 0
-      var globalMax = 15
-      unitFilters.forEach(l => {
-        globalMax = Math.min(globalMax, parseInt(l.limitOption.num.top))
-        globalMin = Math.max(globalMin, parseInt(l.limitOption.num.lowest))
-      })
-      // //将非全局限制的池子约束为全局池子的子集
-      // for (let p in unitFilters) {
-      //   let subGroup=new Set()
-      //   for (let u in p.unitRange) {
-      //     if (pool.has(u)) {
-      //       subGroup.add(u)
-      //     }
-      //   }
-      //   p.unitRange=Array.from(subGroup)
-      // }
 
-      var exclude = new Set(globalUnitRange.unitsExcluded)
-      var appointed = new Set(globalUnitRange.unitsAppointed)
-      pool = new Set([...pool].filter(e => !exclude.has(e)))
-      pool = new Set([...pool].filter(e => !appointed.has(e)))
-      pool = Array.from(pool)
-      //随机重排备选池
-      for (let i = pool.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1))
-        [pool[i], pool[j]] = [pool[j], pool[i]]
-      }
-      var candidates = new Array()
-      candidates = candidates.concat(globalUnitRange.unitsAppointed)
-
-      var theNum = globalMin + Math.floor(Math.random() * (globalMax - globalMin))
-
-      let iter = 0
-      while (candidates.length < theNum && iter < pool.length) {
-        candidates.push(pool[iter])
-        ++iter
-      }
-
-      this.team = candidates
+      this.team = lotteryMachine(unitFilters,globalUnitRange)
       this.hasteam = true
 
 
@@ -333,6 +294,7 @@ var app = new Vue({
     }
   }
 })
+
 
 module.exports = {
   run:run
