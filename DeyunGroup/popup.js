@@ -30,7 +30,13 @@ function run(pluginHelper) {
         //[scroll.unitList, scroll.classList]=parseInfos(response)
       }
     })
-    //pluginHelper.onMessage(data)
+
+    pluginHelper.onMessage(data=>{
+      console.log('Received data')
+      let [m,n]=parseInfos(data)
+      scroll.unitList = m
+      scroll.classList = n
+    })
 }
 
 

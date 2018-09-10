@@ -75,6 +75,7 @@ class ClassNode {
     }
 }
 
+// 解析职业树，以计算单位所处的育成阶段，并将每个单位的职业设置为初始职业
 function parseClassTree(ClassInfos){
     let classTree = []
     
@@ -119,12 +120,16 @@ function parseClassTree(ClassInfos){
 
     return classTree
 }
+
+// 解析所需的信息
 function parseInfos(rawData){
     let unitsList = []
     let classList = []
     let classTree = parseClassTree(rawData.ClassInfos)
 
+    // 收集所持单位的所有职业
     let distinctClassCollect = new Set()
+    // 分析兵营
     rawData.BarracksInfos.forEach(unitObj => {
         let unit = new Unit()
         let cardObj = rawData.UnitsInfos.find(u=>u.CardID==unitObj.A1)
@@ -157,7 +162,7 @@ function parseInfos(rawData){
     return [unitsList,classList]
 }
 
-
+// 抽选机
 function lotteryMachine(unitFilters, globalUnitRange){
     //对全局限制的池子求交集
     let pool = new Set(unitFilters[0].unitRange)
