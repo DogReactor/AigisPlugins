@@ -192,11 +192,14 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
     pool = new Set([...pool].filter(e => !appointed.has(e)))
     pool = Array.from(pool)
     //随机重排备选池
-    let j=0 // 不要把这个let放到下面去，可能会被报‘j is not defined’， FAK js
     for (let i = pool.length - 1; i > 0; i--) {
-      j = Math.floor(Math.random() * (i + 1))
-      [pool[i], pool[j]] = [pool[j], pool[i]]
+      let j = Math.floor(Math.random() * (i + 1))
+      // 如果用解tuple的形式交换值可能会无效，FAK JS
+      let tmp = pool[i]
+      pool[i] = pool[j]
+      pool[j] = tmp
     }
+    console.log(pool)
     let candidates = new Array()
     candidates = candidates.concat(globalUnitRange.unitsAppointed)
   
@@ -219,18 +222,48 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
     let altStart = pool.length - rNum
     let partialFilters=unitFilters.filter(f=>!f.limitOption.isGlobal)
 
-    let bestGrades = 0
- 
+    let bestGrades = 0 // grades是不满足局部条件的偏差绝对值总和
+
+    // 只有一个局部条件时可以偷个懒
     if(partialFilters.length>0) {
         [exceedNum,bestGrades]=passFilters(partialFilters, candidates)
-        let breakTimes = 1000
+        if(exceedNum[0]>0) {
+            pool=pool.filter(u=>!partialFilters[0].unitPassFilter(u))
+            for(let i=candidates.length -1;i>=0 && exceedNum[0]>0;--i) {
+                if(partialFilters[0].unitPassFilter(candidates[i])) {
+                    candidates.splice(i,1)
+                    --i
+                    --exceedNum[0]
+                }
+            }
+            candidates=candidates.concat(pool.slice(0, bestGrades))
+        }
+        else if (exceedNum[0]<0) {
+            bestGrades=Math.abs(bestGrades)
+            pool=pool.filter(u=>partialFilters[0].unitPassFilter(u))
+            for(let i=candidates.length -1;i>=0 && exceedNum[0]<0;--i) {
+                if(!partialFilters[0].unitPassFilter(candidates[i])) {
+                    candidates.splice(i,1)
+                    --i
+                    ++exceedNum[0]
+                }
+            }
+            candidates=candidates.concat(pool.slice(0, bestGrades))
+        }
+        bestGrades=exceedNum[0]
+    }
+    else if(partialFilters.length>1) {
+        [exceedNum,bestGrades]=passFilters(partialFilters, candidates)
+        let breakTimes = 1000 // 尝试次数
         let times = 0
         let altPool = pool.filter(u=>!candidates.includes(u))
         let featUnits = candidates.map(u=>u.ID)
-        console.log(altPool.length)
-        while(bestGrades>0&&time<breakTimes){
+        console.log(times,bestGrades)
+        // 贪心算法尝试匹配局部条件
+        while(bestGrades>0&&times<breakTimes){
             altPool.push(candidates.pop())
             candidates.splice(altStart,0,altPool.shift())
+            // 如果待定队伍回归了初始待定队伍则认为尝试失败
             if(matchTeam(featUnits,candidates)){
                 break
             }
@@ -241,6 +274,7 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
     }
 
 
+    
     let err=bestGrades>0?errFailQualified:errOK
     callback(candidates, exceedNum,  err)
   
@@ -264,18 +298,17 @@ function passFilters(filters, team) {
         })
     })
     filters.forEach((f,i)=>{
-        if(filterQualified[i]<f.limitOption.lowest){
-            exceedNum[i]=filterQualified[i]-f.limitOption.lowest
+        if(filterQualified[i]<f.limitOption.num.lowest){
+            exceedNum[i]=filterQualified[i]-f.limitOption.num.lowest
         }
-        else if(filterQualified[i]>f.limitOption.top){
-            exceedNum[i]=filterQualified[i]-f.limitOption.top
+        else if(filterQualified[i]>f.limitOption.num.top){
+            exceedNum[i]=filterQualified[i]-f.limitOption.num.top
         }
         else {
             exceedNum[i]=0
         }
     })
-    console.log(exceedNum.length)
-    let grades = Math.abs(exceedNum.reduce((accumulator, currentValue) => accumulator + currentValue))
+    let grades = exceedNum.reduce((accumulator, currentValue) => Math.abs(accumulator) + Math.abs(currentValue))
     return [exceedNum,grades]
 }
 module.exports = {

@@ -9,15 +9,21 @@
 <body>
     <div id="app">
         <el-header>
-            <el-row>
-                <el-button type="primary" plain>导入配置</el-button>
-                <el-button type="primary" plain>保存配置</el-button>
-            </el-row>
+                <template>
+                        <el-row>
+                        <el-button type="primary" @click="helpVisible=true" style="margin-top: 5">点我打开帮助</el-button>
+                        <el-button type="primary" @click="storeConfig()" style="margin-top: 5">点我保存当前配置</el-button>
+                        </el-row>
+                </template>
         </el-header>
         <el-main>
             <template>
-                <el-table  :data="unitFilters" border style="width: 100%;margin-top:50" stripe>
-                    <el-table-column prop="limitOption.ruleName" label="规则" align="center" width="240"></el-table-column>
+                <el-table  :data="unitFilters" border style="width: 100%" @selection-change="handleSelectionChange" @toggleRowSelection="toggleFilterSelect(row,selected)" stripe>
+                    <el-table-column
+      type="selection"
+      width="40">
+    </el-table-column>
+                    <el-table-column prop="limitOption.ruleName" label="规则" align="center" width="200"></el-table-column>
 
                     <el-table-column fixed="right" label="范围设定" align="center">
                         <template slot-scope="scope">
@@ -49,6 +55,15 @@
                     </el-col>
                 </el-row>
 
+                <div style="margin-top: 20px" v-if="hasErr">
+                    <template>
+                        <el-alert
+                          :title="errAbstract"
+                          :description="errInfo"
+                          type="error">
+                        </el-alert>
+                      </template>
+                </div>
                 <div v-if="hasteam">
                     <el-table :data="team" border style="width: 100%;margin-top:50" stripe>
                         <el-table-column prop="Name" label="名字" align="center"></el-table-column>
@@ -58,12 +73,24 @@
                     </el-table>
                 </div>
 
+                
+                <el-dialog title="提示" :visible.sync="helpVisible" width="70%">
+                        <p>1.全局限制要求整个队伍满足，非全局限制只要求队伍的某个子集满足</p>
+                        <p>2.非全局限制过多会显著提高计算时间，请斟酌使用</p>
+                        <p>3.算法不会遍历所有可能，所以非全局限制大于1条时匹配失败并不表明一定不可能匹配成功，可以多尝试几次</p>
+                        <p>4.无论在哪个条件下指定的单位限制都是全局有效的，而职业限制仅对该项条件有效</p>
+                        <p>5.每个条件指定单位的页面中备选单位仅显示符合目前该项一般条件和职业限制的</p>
+                        <p>6.当前使用贪心算法匹配非全局限制，有更优雅地算法请大力CALL我_(:з」∠)_</p>
+                        <span slot="footer" class="dialog-footer">
+                            <el-button type="primary" @click="helpVisible = false">确 定</el-button>
+                        </span>
+                    </el-dialog>
                 <el-dialog title="备选名单" :visible.sync="cardsFormVisible" width="900">
-                    <el-table :data="unitCheckList" border stripe max-height="500">
-                        <el-table-column prop="Name" label="名字" align="center"></el-table-column>
-                        <el-table-column prop="Class" label="职业" align="center" width="180"></el-table-column>
-                        <el-table-column prop="Lv" label="等级" align="center" width="80"></el-table-column>
-                        <el-table-column prop="Rare" label="稀有度" align="center" width="100"></el-table-column>
+                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order: 'descending'}">
+                        <el-table-column prop="Name" label="名字" align="center" sortable></el-table-column>
+                        <el-table-column prop="Class" label="职业" align="center" sortable width="180"></el-table-column>
+                        <el-table-column prop="Lv" label="等级" align="center" sortable width="80"></el-table-column>
+                        <el-table-column prop="Rare" label="稀有度" :sort-method="rareSortMethod" align="center" sortable width="100"></el-table-column>
                         <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="cardscope">
                                 <div>
@@ -77,11 +104,11 @@
                         </el-table-column>
                     </el-table>
                 </el-dialog>
-                
-                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600">
+
+                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600" :default-sort = "{prop: 'Name', order: 'descending'}">
                     <el-table :data="scroll.classList" border stripe max-height="500">
-                        <el-table-column prop="Name" label="职业名" align="center"></el-table-column>
-                        <el-table-column prop="AttackMode" label="站位" align="center" width="80"></el-table-column>
+                        <el-table-column prop="Name" sortable label="职业名" align="center"></el-table-column>
+                        <el-table-column prop="AttackMode" sortable label="站位" align="center" width="80"></el-table-column>
                         <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="classscope">
                                 <div>

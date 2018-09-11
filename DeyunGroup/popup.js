@@ -1,6 +1,7 @@
 const { parseInfos, lotteryMachine } = require('./js/function') 
-const remote = require('electron').remote
-remote.getCurrentWebContents().openDevTools()
+const fs = require ('fs')
+// const remote = require('electron').remote
+// remote.getCurrentWebContents().openDevTools()
 
 const hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", "安姆安格瑞", "德云是千年的特色，不得不品尝",
 "人类总要重复同样的错误", "異議あり!!", "所罗门哟，我又回来了", "我现在内心感到悲痛欲绝",
@@ -9,6 +10,7 @@ const hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", 
 "我考虑了一下还是无法接受啊", "堕落！萌死他卡多", "已经没什么好害怕的了", "不也挺好吗？",
 "只要能够德云我随便你搞", "所累哇多卡纳~"]
 
+const configFile='config'
 
 var scroll = {
   unitList: [],
@@ -18,55 +20,115 @@ var scroll = {
   location: ["第一兵营", "第二兵营", "第三兵营"]
 }
 
-
+function updateFilters() {
+  if (unitFilters.length === 0) {
+    unitFilters.push(new Qualification())
+  } 
+  else {
+    unitFilters.forEach(f => {
+      f.limitOption.classCheck = scroll.classList.map(c => '随机')
+      let checkState = f.unitRange.map(u => {
+        return {
+          ID: u.ID,
+          check: u.cardCheck
+        }
+      })
+      f.updateUnitRange()
+      f.unitRange.forEach(u => {
+        let state = '随机'
+        let ui = checkState.findIndex(e => e.ID === u.ID)
+        if (ui != -1) {
+          if (checkState[ui].check) {
+            state = checkState[ui].check
+          }
+        }
+        u.cardCheck = state
+        switch (state) {
+          case '必选':
+            globalUnitRange.unitsAppointed.push(u)
+            break
+          case '移除':
+            globalUnitRange.unitsExcluded.push(u)
+            break
+          default:
+            break
+        }
+      })
+    })
+  }
+}
 function run(pluginHelper) {
-    pluginHelper.sendMessage('Request raw data', (response) => {
-      if(response==='Wait to ready'){}
-      else {
-        console.log('Received data')
-        let [m,n]=parseInfos(response)
-        scroll.unitList = m
-        scroll.classList = n
-        //[scroll.unitList, scroll.classList]=parseInfos(response)
-      }
-    })
-
-    pluginHelper.onMessage(data=>{
+  fs.readFile(configFile, 'utf-8', (err, text) => {
+    if(!err){
+      rawFilters = JSON.parse(text)
+      rawFilters.forEach(f=>{
+        let q=new Qualification()
+        q.isChosen=f.isChosen
+        q.limitOption=f.limitOption
+        q.unitRange=f.unitRange
+        unitFilters.push(q)
+      })
+    }
+    
+  })
+  pluginHelper.sendMessage('Request raw data', (response) => {
+    if (response === 'Wait to ready') {} else {
       console.log('Received data')
-      let [m,n]=parseInfos(data)
+      let [m, n] = parseInfos(response)
       scroll.unitList = m
+      globalUnitRange.allUnits = m
       scroll.classList = n
-    })
+      updateFilters()
+      
+      //[scroll.unitList, scroll.classList]=parseInfos(response)
+    }
+  })
+
+  pluginHelper.onMessage(data => {
+    console.log('Received data')
+    let [m, n] = parseInfos(data)
+    scroll.unitList = m
+    scroll.classList = n
+    globalUnitRange.allUnits = m
+    updateFilters()
+  })
 }
 
 
 
 var globalUnitRange = {
-  allUnits:scroll.unitList,
-  unitsExcluded:[],
-  unitsAppointed:[]
+  allUnits: [],
+  unitsExcluded: [],
+  unitsAppointed: []
 }
 
 
 
 class Qualification {
 
-  constructor(){
-    this.limitOption={
+  constructor() {
+    this.isChosen = false
+    this.limitOption = {
       isGlobal: true,
       ruleName: "王国招募书",
-      num: { top: 15, lowest: 15 },
+      num: {
+        top: 15,
+        lowest: 15
+      },
       rare: ["金", "蓝", "白", "黑"],
-      level: { top: 99, lowest: 1 },
+      level: {
+        top: 99,
+        lowest: 1
+      },
       location: ["第一兵营"],
       stage: ["CC后", "第一觉醒", "第二觉醒"],
       locked: true,
       classCheck: [],
       classExcluded: [],
-      classAppointed:[]
+      classAppointed: []
     }
-    this.limitOption.classCheck=scroll.classList.map(c=>'随机')
-    this.unitRange= []
+    this.limitOption.classCheck = scroll.classList.map(c => '随机')
+    this.updateUnitRange()
   }
   unitPassFilter(u) {
     if (this.limitOption.rare.includes(u.Rare) &&
@@ -75,24 +137,18 @@ class Qualification {
       this.limitOption.level.top >= u.Lv && this.limitOption.level.lowest <= u.Lv &&
       this.limitOption.locked === u.Locked &&
       !this.limitOption.classExcluded.includes(u.Class)) {
-        return true
-      } else {
-        return false
-      }
+      return true
+    } else {
+      return false
+    }
   }
-  updateUnitRange () {
+  updateUnitRange() {
     this.unitRange = scroll.unitList.filter(u => this.unitPassFilter(u))
   }
 }
 
 var unitFilters = new Array()
-unitFilters.push(new Qualification())
-// for(let i=0;i<5;++i)
-// {
-//   let f=new Object()
-//   f.__proto__=Qualification
-//   unitFilters.push(f)
-// }
+
 
 
 
@@ -105,8 +161,7 @@ var app = new Vue({
         callback(new Error('人数上下限应在0~15之间'))
       } else if (value.lowest > value.top) {
         callback(new Error('人数上限应不小于人数下限'))
-      }
-      else {
+      } else {
         callback()
       }
     }
@@ -115,56 +170,78 @@ var app = new Vue({
         callback(new Error('等级上下限应在1~99之间'))
       } else if (value.lowest > value.top) {
         callback(new Error('等级上限应不小于等级下限'))
-      }
-      else {
+      } else {
         callback()
       }
     }
     return {
+      helpVisible: false,
       fullscreenLoading: true,
       drawButton: "抽 选",
       hasteam: false,
+      hasErr: false,
+      errAbstract: '',
+      errInfo: '',
       scroll,
       unitFilters,
-      filterIndex:0,
+      filterIndex: 0,
       team: [],
       unitCheckList: [],
-      unitCheckState:[],
-      classCheckState:[],
+      unitCheckState: [],
+      classCheckState: [],
       limitFormVisible: false,
       cardsFormVisible: false,
       classFormVisible: false,
-      limitFormId:0,
+      limitFormId: 0,
       limitForm: {
         isGlobal: false,
         ruleName: "王国招募书",
-        num: { top: 15, lowest: 15 },
+        num: {
+          top: 15,
+          lowest: 15
+        },
         rare: ["金", "蓝", "白", "黑"],
-        level: { top: 99, lowest: 1 },
+        level: {
+          top: 99,
+          lowest: 1
+        },
         location: ["第一兵营"],
         stage: ["CC后", "第一觉醒", "第二觉醒"],
         locked: true,
         class: []
       },
       limitFormRules: {
-        ruleName: [
-          { required: true, message: '请输入规则名称', trigger: 'blur' }
-        ],
-        num: [
-          { validator: ValidateNum, trigger: 'blur' }
-        ],
-        level: [
-          { validator: ValidateLevel, trigger: 'blur' }
-        ],
-        rare: [
-          { type: 'array', required: true, message: '请至少选中一个稀有度', trigger: 'blur' }
-        ],
-        location: [
-          { type: 'array', required: true, message: '请至少选中一个兵营位置', trigger: 'blur' }
-        ],
-        stage: [
-          { type: 'array', required: true, message: '请至少选中一个育成阶段', trigger: 'blur' }
-        ]
+        ruleName: [{
+          required: true,
+          message: '请输入规则名称',
+          trigger: 'blur'
+        }],
+        num: [{
+          validator: ValidateNum,
+          trigger: 'blur'
+        }],
+        level: [{
+          validator: ValidateLevel,
+          trigger: 'blur'
+        }],
+        rare: [{
+          type: 'array',
+          required: true,
+          message: '请至少选中一个稀有度',
+          trigger: 'blur'
+        }],
+        location: [{
+          type: 'array',
+          required: true,
+          message: '请至少选中一个兵营位置',
+          trigger: 'blur'
+        }],
+        stage: [{
+          type: 'array',
+          required: true,
+          message: '请至少选中一个育成阶段',
+          trigger: 'blur'
+        }]
       },
     }
   },
@@ -177,7 +254,7 @@ var app = new Vue({
     },
     editLimit(index, table) {
       this.limitForm = table[index].limitOption
-      this.limitFormId=index
+      this.limitFormId = index
       this.limitFormVisible = true
     },
     copyLimit(index, table) {
@@ -213,7 +290,7 @@ var app = new Vue({
           default:
             break
         }
-        table[index].cardCheck=change
+        table[index].cardCheck = change
         Vue.set(this.unitCheckState, index, change)
       }
     },
@@ -249,7 +326,7 @@ var app = new Vue({
         }
         Vue.set(this.classCheckState, index, change)
         unitFilters[this.filterIndex].updateUnitRange()
-        return 
+        return
       }
     },
     clearTable(table) {
@@ -257,22 +334,24 @@ var app = new Vue({
     },
     setUnitRange(index, unitFilters) {
       this.unitCheckList = unitFilters[index].unitRange
-      if(!Object.keys(this.unitCheckList[0]).includes('cardCheck')){
-        this.unitCheckList.forEach(u => { u.cardCheck = '随机' })
+      if (!Object.keys(this.unitCheckList[0]).includes('cardCheck')) {
+        this.unitCheckList.forEach(u => {
+          u.cardCheck = '随机'
+        })
       }
-      this.unitCheckState=this.unitCheckList.map(x=>x)
+      this.unitCheckState = this.unitCheckList.map(x => x.cardCheck)
       this.cardsFormVisible = true
     },
     setClassRange(index, unitFilters) {
-      this.filterIndex=index
-      this.classCheckState=unitFilters[index].limitOption.classCheck
+      this.filterIndex = index
+      this.classCheckState = unitFilters[index].limitOption.classCheck
       this.classFormVisible = true
     },
     newLimitForm() {
-      var newLimit=new Qualification()
+      var newLimit = new Qualification()
       newLimit.limitOption.classCheck = scroll.classList.slice(0)
       newLimit.updateUnitRange()
-      this.limitFormId=unitFilters.length
+      this.limitFormId = unitFilters.length
       unitFilters.push(newLimit)
       this.limitForm = unitFilters[this.limitFormId].limitOption
       this.limitFormVisible = true
@@ -289,19 +368,66 @@ var app = new Vue({
       })
     },
 
+    rareSortMethod(a, b) {
+      let [i1, i2] = [scroll.rareList.findIndex(e => e === a.Rare), scroll.rareList.findIndex(e => e === b.Rare)]
+      if (i1 < i2) {
+        return -1;
+      }
+      if (i1 > i2) {
+        return 1;
+      }
+      return 0;
+    },
+    handleSelectionChange(filters) {
+      console.log(filters)
+      filters.forEach(f => f.isChosen = !f.isChosen)
+    },
+
+    toggleFilterSelect(row,selected){
+      console.log(row,selected)
+    },
+    storeConfig() {
+      fs.writeFile(configFile, JSON.stringify(unitFilters), err => {})
+    },
     generateTeam(table) {
-      if (unitFilters.length < 1) {
-        return false
+      actFilters = unitFilters.filter(f => f.isChosen)
+      if (actFilters.length < 1) {
+        this.errAbstract = '请至少勾选一个条件'
+        this.hasErr = true
+        return 
       }
 
-
-      lotteryMachine(unitFilters,globalUnitRange, (team, exceedNum, err)=>{
-        this.team=team
+      lotteryMachine(actFilters, globalUnitRange, (team, exceedNum, err) => {
+        this.team = team
+        this.errInfo = ''
+        exceedNum.forEach((e, i) => {
+          if (e > 0) {
+            this.errInfo += '条件 {' + i + '}: 超出上限 ' + e + ' 个  |  '
+          }
+          if (e < 0) {
+            this.errInfo += '条件 {' + i + '}: 低于下限 ' + Math.abs(e) + ' 个  |  '
+          }
+        })
+        switch (err) {
+          case 'not possible':
+            this.errAbstract = '板凳深度不能找出满足要求的队伍：'
+            this.hasErr = true
+            break
+          case 'failed partial limits':
+            this.errAbstract = '满足局部条件失败'
+            this.hasErr = true
+            this.hasteam = true
+            break
+          case 'Ok':
+            this.hasErr = false
+            this.hasteam = true
+            break
+        }
       })
-      this.hasteam = true
+      if (this.hasteam) {
+        this.drawButton = hints[Math.floor(Math.random() * Math.floor(hints.length))]
+      }
 
-
-      this.drawButton = hints[Math.floor(Math.random() * Math.floor(hints.length))]
     }
   }
 })

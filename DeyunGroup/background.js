@@ -111,9 +111,8 @@ function newGameResponse(event, data) {
       break
     case 'allunits-info':
       cargo.BarracksInfos = data.filter(u=>{
-        let classID = parseInt(u.A2)
         // 排除王子和圣灵
-        if(( u.A2[0]==='9'&&classID != 9800 ) || classID<100) {
+        if(( u.A2.toString()[0]==='9'&&u.A2 != 9800 ) || u.A2<100) {
           return false
         }
         else {
