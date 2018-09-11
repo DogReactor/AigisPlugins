@@ -18,9 +18,10 @@
         </el-header>
         <el-main>
             <template>
-                <el-table  :data="unitFilters" border style="width: 100%" @selection-change="handleSelectionChange" @toggleRowSelection="toggleFilterSelect(row,selected)" stripe>
+                <el-table  :data="unitFilters" border style="width: 100%" @select-all="handleSelectAll" @select="toggleFilterSelect" stripe>
                     <el-table-column
       type="selection"
+      
       width="40">
     </el-table-column>
                     <el-table-column prop="limitOption.ruleName" label="规则" align="center" width="200"></el-table-column>
@@ -86,7 +87,7 @@
                         </span>
                     </el-dialog>
                 <el-dialog title="备选名单" :visible.sync="cardsFormVisible" width="900">
-                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order: 'descending'}">
+                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order: 'descending'}" @current-change="resetCardCheckState">
                         <el-table-column prop="Name" label="名字" align="center" sortable></el-table-column>
                         <el-table-column prop="Class" label="职业" align="center" sortable width="180"></el-table-column>
                         <el-table-column prop="Lv" label="等级" align="center" sortable width="80"></el-table-column>

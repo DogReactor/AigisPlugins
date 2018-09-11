@@ -184,13 +184,13 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
             globalMin = Math.max(globalMin, parseInt(l.limitOption.num.lowest))
         }
     })
-  
     // 从抽选池中划去排除和钦定的单位
     let exclude = new Set(globalUnitRange.unitsExcluded)
     let appointed = new Set(globalUnitRange.unitsAppointed)
     pool = new Set([...pool].filter(e => !exclude.has(e)))
     pool = new Set([...pool].filter(e => !appointed.has(e)))
     pool = Array.from(pool)
+
     //随机重排备选池
     for (let i = pool.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1))
@@ -199,7 +199,6 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
       pool[i] = pool[j]
       pool[j] = tmp
     }
-    console.log(pool)
     let candidates = new Array()
     candidates = candidates.concat(globalUnitRange.unitsAppointed)
   
@@ -219,6 +218,7 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
       candidates.push(pool[rNum])
       ++rNum
     }
+    console.log('theNum:',candidates.length)
     let altStart = pool.length - rNum
     let partialFilters=unitFilters.filter(f=>!f.limitOption.isGlobal)
 
@@ -232,7 +232,6 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
             for(let i=candidates.length -1;i>=0 && exceedNum[0]>0;--i) {
                 if(partialFilters[0].unitPassFilter(candidates[i])) {
                     candidates.splice(i,1)
-                    --i
                     --exceedNum[0]
                 }
             }
@@ -244,7 +243,6 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
             for(let i=candidates.length -1;i>=0 && exceedNum[0]<0;--i) {
                 if(!partialFilters[0].unitPassFilter(candidates[i])) {
                     candidates.splice(i,1)
-                    --i
                     ++exceedNum[0]
                 }
             }

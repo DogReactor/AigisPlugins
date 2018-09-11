@@ -20,6 +20,13 @@ var scroll = {
   location: ["第一兵营", "第二兵营", "第三兵营"]
 }
 
+
+var globalUnitRange = {
+  allUnits: [],
+  unitsExcluded: [],
+  unitsAppointed: []
+}
+
 function updateFilters() {
   if (unitFilters.length === 0) {
     unitFilters.push(new Qualification())
@@ -45,10 +52,14 @@ function updateFilters() {
         u.cardCheck = state
         switch (state) {
           case '必选':
-            globalUnitRange.unitsAppointed.push(u)
+            if (globalUnitRange.unitsAppointed.findIndex(e => e.ID === u.ID) === -1) {
+              globalUnitRange.unitsAppointed.push(u)
+            }
             break
           case '移除':
-            globalUnitRange.unitsExcluded.push(u)
+            if (globalUnitRange.unitsExcluded.findIndex(e => e.ID === u.ID) === -1) {
+              globalUnitRange.unitsExcludedd.push(u)
+            }
             break
           default:
             break
@@ -63,7 +74,7 @@ function run(pluginHelper) {
       rawFilters = JSON.parse(text)
       rawFilters.forEach(f=>{
         let q=new Qualification()
-        q.isChosen=f.isChosen
+        //q.isChosen=f.isChosen
         q.limitOption=f.limitOption
         q.unitRange=f.unitRange
         unitFilters.push(q)
@@ -96,11 +107,6 @@ function run(pluginHelper) {
 
 
 
-var globalUnitRange = {
-  allUnits: [],
-  unitsExcluded: [],
-  unitsAppointed: []
-}
 
 
 
@@ -282,10 +288,14 @@ var app = new Vue({
         }
         switch (change) {
           case '必选':
-            globalUnitRange.unitsAppointed.push(table[index])
+            if (globalUnitRange.unitsAppointe.findIndex(e => e.ID === table[index].ID) === -1) {
+              globalUnitRange.unitsAppointed.push(table[index])
+            }
             break
           case '移除':
-            globalUnitRange.unitsExcluded.push(table[index])
+            if (globalUnitRange.unitsExcluded.findIndex(e => e.ID === table[index].ID) === -1) {
+              globalUnitRange.unitsExcludedd.push(table[index])
+            }
             break
           default:
             break
@@ -293,6 +303,9 @@ var app = new Vue({
         table[index].cardCheck = change
         Vue.set(this.unitCheckState, index, change)
       }
+    },
+    resetCardCheckState(column, prop, order){
+      console.log(column, prop, order)
     },
     classChangeCheck(index, change) {
       if (change != this.classCheckState[index]) {
@@ -378,13 +391,16 @@ var app = new Vue({
       }
       return 0;
     },
-    handleSelectionChange(filters) {
-      console.log(filters)
-      filters.forEach(f => f.isChosen = !f.isChosen)
+    handleSelectAll(filters) {
+      if(filters.length===0){
+        filters.forEach(f => f.isChosen = false)
+      }
+      else {
+        filters.forEach(f => f.isChosen = true)
+      }
     },
-
-    toggleFilterSelect(row,selected){
-      console.log(row,selected)
+    toggleFilterSelect(selected,row){
+      row.isChosen=!row.isChosen
     },
     storeConfig() {
       fs.writeFile(configFile, JSON.stringify(unitFilters), err => {})
