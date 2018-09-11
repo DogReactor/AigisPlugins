@@ -162,10 +162,13 @@ function parseInfos(rawData){
     return [unitsList,classList]
 }
 
+const errNotPossible = 'not possible'
+const errFailQualified = 'failed partial limits'
+const errOK='Ok'
 // 抽选机
-function lotteryMachine(unitFilters, globalUnitRange){
+function lotteryMachine(unitFilters, globalUnitRange, callback){
     //对全局限制的池子求交集
-    let pool = new Set(unitFilters[0].unitRange)
+    let pool = new Set(globalUnitRange.allUnits)
     for (let p = 0; p < unitFilters.length; ++p) {
       if (unitFilters[p].limitOption.isGlobal) {
         let a = new Set(unitFilters[p].unitRange)
@@ -176,20 +179,13 @@ function lotteryMachine(unitFilters, globalUnitRange){
     let globalMin = 0
     let globalMax = 15
     unitFilters.forEach(l => {
-      globalMax = Math.min(globalMax, parseInt(l.limitOption.num.top))
-      globalMin = Math.max(globalMin, parseInt(l.limitOption.num.lowest))
+        if(l.limitOption.isGlobal){
+            globalMax = Math.min(globalMax, parseInt(l.limitOption.num.top))
+            globalMin = Math.max(globalMin, parseInt(l.limitOption.num.lowest))
+        }
     })
-    // //将非全局限制的池子约束为全局池子的子集
-    // for (let p in unitFilters) {
-    //   let subGroup=new Set()
-    //   for (let u in p.unitRange) {
-    //     if (pool.has(u)) {
-    //       subGroup.add(u)
-    //     }
-    //   }
-    //   p.unitRange=Array.from(subGroup)
-    // }
   
+    // 从抽选池中划去排除和钦定的单位
     let exclude = new Set(globalUnitRange.unitsExcluded)
     let appointed = new Set(globalUnitRange.unitsAppointed)
     pool = new Set([...pool].filter(e => !exclude.has(e)))
@@ -204,18 +200,84 @@ function lotteryMachine(unitFilters, globalUnitRange){
     let candidates = new Array()
     candidates = candidates.concat(globalUnitRange.unitsAppointed)
   
-    let theNum = globalMin + Math.floor(Math.random() * (globalMax - globalMin))
-  
-    let iter = 0
-    while (candidates.length < theNum && iter < pool.length) {
-      candidates.push(pool[iter])
-      ++iter
+    // 判断整个备选池是否有足够的单位来满足所有条件
+    let exceedNum=passFilters(unitFilters, pool.concat(globalUnitRange.unitsAppointed))
+    for(let i in exceedNum) {
+        if(exceedNum[i]<0) {
+            callback(candidate, exceedNum,  errNotPossible)
+            return 
+        }
     }
-  
-    return candidates
+
+    let theNum = globalMin + Math.floor(Math.random() * (globalMax - globalMin))
+
+    let rNum = 0 // 从池子中抽选的数量
+    while (candidates.length < theNum && rNum < pool.length) {
+      candidates.push(pool[rNum])
+      ++rNum
+    }
+    let altStart = pool.length - rNum
+    let partialFilters=unitFilters.filter(f=>!f.limitOption.isGlobal)
+
+    let bestGrades = 0
+ 
+    if(partialFilters.length>0) {
+        [exceedNum,bestGrades]=passFilters(partialFilters, candidates)
+        let breakTimes = 1000
+        let times = 0
+        let altPool = pool.filter(u=>!candidates.includes(u))
+        let featUnits = candidates.map(u=>u.ID)
+        console.log(altPool.length)
+        while(bestGrades>0&&time<breakTimes){
+            altPool.push(candidates.pop())
+            candidates.splice(altStart,0,altPool.shift())
+            if(matchTeam(featUnits,candidates)){
+                break
+            }
+            [exceedNum,nowGrades] = passFilters(partialFilters, candidates)
+            bestGrades=Math.min(bestGrades,nowGrades)
+            times+=1
+        }
+    }
+
+
+    let err=bestGrades>0?errFailQualified:errOK
+    callback(candidates, exceedNum,  err)
   
   }
-
+function matchTeam(featUnits, candidates){
+    for(let i in featUnits){
+        if(featUnits[i]!=candidates[i].ID){
+            return false
+        }
+    }
+    return true
+}
+function passFilters(filters, team) {
+    let exceedNum=filters.map(f=>0)
+    let filterQualified = filters.map(f=>0)
+    team.forEach(u=>{
+        filters.forEach((f,i)=>{
+            if(f.unitPassFilter(u)){
+                filterQualified[i]+=1
+            }
+        })
+    })
+    filters.forEach((f,i)=>{
+        if(filterQualified[i]<f.limitOption.lowest){
+            exceedNum[i]=filterQualified[i]-f.limitOption.lowest
+        }
+        else if(filterQualified[i]>f.limitOption.top){
+            exceedNum[i]=filterQualified[i]-f.limitOption.top
+        }
+        else {
+            exceedNum[i]=0
+        }
+    })
+    console.log(exceedNum.length)
+    let grades = Math.abs(exceedNum.reduce((accumulator, currentValue) => accumulator + currentValue))
+    return [exceedNum,grades]
+}
 module.exports = {
     parseInfos:parseInfos,
     lotteryMachine:lotteryMachine

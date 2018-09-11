@@ -42,11 +42,12 @@ function run(pluginHelper) {
 
 
 var globalUnitRange = {
+  allUnits:scroll.unitList,
   unitsExcluded:[],
   unitsAppointed:[]
 }
 
-var unitFilters = new Array()
+
 
 class Qualification {
 
@@ -66,11 +67,9 @@ class Qualification {
     }
     this.limitOption.classCheck=scroll.classList.map(c=>'随机')
     this.unitRange= []
-
   }
-  updateUnitRange () {
-    this.unitRange = scroll.unitList.filter(u => {
-      if (this.limitOption.rare.includes(u.Rare) &&
+  unitPassFilter(u) {
+    if (this.limitOption.rare.includes(u.Rare) &&
       this.limitOption.stage.includes(u.Stage) &&
       this.limitOption.location.includes(u.Location) &&
       this.limitOption.level.top >= u.Lv && this.limitOption.level.lowest <= u.Lv &&
@@ -80,10 +79,14 @@ class Qualification {
       } else {
         return false
       }
-    })
+  }
+  updateUnitRange () {
+    this.unitRange = scroll.unitList.filter(u => this.unitPassFilter(u))
   }
 }
 
+var unitFilters = new Array()
+unitFilters.push(new Qualification())
 // for(let i=0;i<5;++i)
 // {
 //   let f=new Object()
@@ -292,7 +295,9 @@ var app = new Vue({
       }
 
 
-      this.team = lotteryMachine(unitFilters,globalUnitRange)
+      lotteryMachine(unitFilters,globalUnitRange, (team, exceedNum, err)=>{
+        this.team=team
+      })
       this.hasteam = true
 
 
