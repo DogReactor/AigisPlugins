@@ -10,7 +10,7 @@ const hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", 
 "我考虑了一下还是无法接受啊", "堕落！萌死他卡多", "已经没什么好害怕的了", "不也挺好吗？",
 "只要能够德云我随便你搞", "所累哇多卡纳~"]
 
-const configFile='config'
+const configFile='.\\plugins\\DeyunGroup\\config'
 
 var scroll = {
   unitList: [],
@@ -58,7 +58,7 @@ function updateFilters() {
             break
           case '移除':
             if (globalUnitRange.unitsExcluded.findIndex(e => e.ID === u.ID) === -1) {
-              globalUnitRange.unitsExcludedd.push(u)
+              globalUnitRange.unitsExcluded.push(u)
             }
             break
           default:
@@ -195,6 +195,8 @@ var app = new Vue({
       unitCheckList: [],
       unitCheckState: [],
       classCheckState: [],
+      unitSortState:[],
+      classSortState:[],
       limitFormVisible: false,
       cardsFormVisible: false,
       classFormVisible: false,
@@ -267,7 +269,8 @@ var app = new Vue({
       table.push(table[index])
     },
 
-    cardChangeCheck(index, table, change) {
+    cardChangeCheck(sortedIndex, table, change) {
+      let index = table.findIndex(e=>e.ID===this.unitSortState[sortedIndex].ID)
       if (change != table[index].cardCheck) {
         let state = 'default'
         switch (table[index].cardCheck) {
@@ -288,29 +291,81 @@ var app = new Vue({
         }
         switch (change) {
           case '必选':
-            if (globalUnitRange.unitsAppointe.findIndex(e => e.ID === table[index].ID) === -1) {
+            if (globalUnitRange.unitsAppointed.findIndex(e => e.ID === table[index].ID) === -1) {
               globalUnitRange.unitsAppointed.push(table[index])
             }
             break
           case '移除':
             if (globalUnitRange.unitsExcluded.findIndex(e => e.ID === table[index].ID) === -1) {
-              globalUnitRange.unitsExcludedd.push(table[index])
+              globalUnitRange.unitsExcluded.push(table[index])
             }
             break
           default:
             break
         }
-        table[index].cardCheck = change
-        Vue.set(this.unitCheckState, index, change)
+        table[index].cardCheck=change
+        Vue.set(this.unitCheckState,sortedIndex,change)
       }
     },
-    resetCardCheckState(column, prop, order){
-      console.log(column, prop, order)
+    resetCardOrder({ column, prop, order }){
+      this.unitSortState=this.unitCheckList.map(e=>{return {ID:e.ID,Name:e.Name,Class:e.Class,Lv:e.Lv,Rare:e.Rare,cardCheck:e.cardCheck}})
+      let generalSortMethod = (a,b)=>{
+        if (a[prop] < b[prop] || (a[prop]==b[prop]&&a.ID<b.ID)) {
+          return -1
+        }
+        if (a[prop] > b[prop] || (a[prop]==b[prop]&&a.ID>b.ID)) {
+          return 1
+        }
+        return 0
+      }
+      if(prop==='Rare') {
+        this.unitSortState.sort(this.rareSortMethod);
+      }
+      else {
+        this.unitSortState.sort(generalSortMethod)
+      }
+      if(order==='descending') {
+        this.unitSortState.reverse();
+      }
+      else if(order===null) {
+        this.unitSortState=this.unitCheckList
+      }
+      this.unitSortState.forEach((u,i)=>{
+        Vue.set(this.unitCheckState,i,u.cardCheck)
+      })
+    
     },
-    classChangeCheck(index, change) {
-      if (change != this.classCheckState[index]) {
+    resetClassOrder({ column, prop, order }) {
+      if(this.classSortState.length===0) {
+        this.classSortState=scroll.classList.map((e,i)=>{return { ID:e.ID,Name:e.Name,AttackMode:e.AttackMode}})
+        this.classCheckState.forEach((s,i)=>this.classSortState[i].classCheck=s)
+      }
+      
+      let generalSortMethod = (a,b)=>{
+        if (a[prop] < b[prop] || (a[prop]==b[prop]&&a.ID<b.ID)) {
+          return -1
+        }
+        if (a[prop] > b[prop] || (a[prop]==b[prop]&&a.ID>b.ID)) {
+          return 1
+        }
+        return 0
+      }
+
+      if(order==='descending') {
+        this.classSortState.sort(generalSortMethod).reverse();
+      }
+      else if(order==='ascending') {
+        this.classSortState.sort(generalSortMethod)
+      }
+      this.classSortState.forEach((u,i)=>{
+        Vue.set(this.classCheckState, i, u.classCheck)
+      })
+    },
+    classChangeCheck(sortedindex, change) {
+      let index = scroll.classList.findIndex(c=>c.ID===this.classSortState[sortedindex].ID)
+      if (change != this.classCheckState[sortedindex]) {
         let state = 'default'
-        switch (this.classCheckState[index]) {
+        switch (this.classCheckState[sortedindex]) {
           case '必选':
             state = 'classAppointed'
             break
@@ -337,7 +392,10 @@ var app = new Vue({
           default:
             break
         }
-        Vue.set(this.classCheckState, index, change)
+        Vue.set(this.classCheckState, sortedindex, change)
+        if(this.classSortState.length>0) {
+          this.classSortState[sortedindex].classCheck=change
+        }
         unitFilters[this.filterIndex].updateUnitRange()
         return
       }
@@ -380,16 +438,15 @@ var app = new Vue({
         }
       })
     },
-
     rareSortMethod(a, b) {
       let [i1, i2] = [scroll.rareList.findIndex(e => e === a.Rare), scroll.rareList.findIndex(e => e === b.Rare)]
-      if (i1 < i2) {
-        return -1;
+      if (i1 < i2 || (i1==i2&&a.ID<b.ID)) {
+        return -1
       }
-      if (i1 > i2) {
-        return 1;
+      if (i1 > i2 || (i1==i2&&a.ID>b.ID)) {
+        return 1
       }
-      return 0;
+      return 0
     },
     handleSelectAll(filters) {
       if(filters.length===0){

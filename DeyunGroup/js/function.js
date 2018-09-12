@@ -155,6 +155,7 @@ function parseInfos(rawData){
     
     distinctClassCollect.forEach(c=>{
         classList.push({
+            ID:c.ID,
             Name: c.Name,
             AttackMode: c.AttackMode
         })

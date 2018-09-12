@@ -87,10 +87,10 @@
                         </span>
                     </el-dialog>
                 <el-dialog title="备选名单" :visible.sync="cardsFormVisible" width="900">
-                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order: 'descending'}" @current-change="resetCardCheckState">
-                        <el-table-column prop="Name" label="名字" align="center" sortable></el-table-column>
-                        <el-table-column prop="Class" label="职业" align="center" sortable width="180"></el-table-column>
-                        <el-table-column prop="Lv" label="等级" align="center" sortable width="80"></el-table-column>
+                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order:'descending'}" @sort-change="resetCardOrder">
+                        <el-table-column prop="Name" label="名字" :sort-by="['Name','ID']" align="center" sortable></el-table-column>
+                        <el-table-column prop="Class" label="职业" :sort-by="['Class','ID']" align="center" sortable width="180"></el-table-column>
+                        <el-table-column prop="Lv" label="等级" :sort-by="['Lv','ID']" align="center" sortable width="80"></el-table-column>
                         <el-table-column prop="Rare" label="稀有度" :sort-method="rareSortMethod" align="center" sortable width="100"></el-table-column>
                         <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="cardscope">
@@ -106,10 +106,10 @@
                     </el-table>
                 </el-dialog>
 
-                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600" :default-sort = "{prop: 'Name', order: 'descending'}">
-                    <el-table :data="scroll.classList" border stripe max-height="500">
-                        <el-table-column prop="Name" sortable label="职业名" align="center"></el-table-column>
-                        <el-table-column prop="AttackMode" sortable label="站位" align="center" width="80"></el-table-column>
+                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600">
+                    <el-table :data="scroll.classList" border stripe max-height="500" :default-sort = "{prop: 'AttackMode', order: 'descending'}" @sort-change="resetClassOrder">
+                        <el-table-column prop="Name" :sort-by="['Name','ID']" sortable label="职业名" align="center"></el-table-column>
+                        <el-table-column prop="AttackMode" :sort-by="['AttackMode','ID']" sortable label="站位" align="center" width="80"></el-table-column>
                         <el-table-column fixed="right" label="选定规则" align="center" width="220">
                             <template slot-scope="classscope">
                                 <div>
