@@ -90,6 +90,7 @@ function run(pluginHelper) {
       globalUnitRange.allUnits = m
       scroll.classList = n
       updateFilters()
+      app.fullscreenLoading=false
       
       //[scroll.unitList, scroll.classList]=parseInfos(response)
     }
@@ -102,6 +103,7 @@ function run(pluginHelper) {
     scroll.classList = n
     globalUnitRange.allUnits = m
     updateFilters()
+    app.fullscreenLoading=false
   })
 }
 
