@@ -2,12 +2,12 @@
 -- v1.0
 -- author: lzlis
 
-local file = require("plugins\\DeyunGroup\\tools\\scripts\\lib\\file")
-local curl = require("plugins\\DeyunGroup\\tools\\scripts\\lib\\curl")
+local file = require("scripts\\lib\\file")
+local curl = require("scripts\\lib\\curl")
 
 local function getfile(path, filename)
 
-  local local_dir = "plugins\\DeyunGroup\\tools\\Cache"
+  local local_dir = "Cache"
   if not file.dir_exists(local_dir) then
     file.make_dir(local_dir)
   end

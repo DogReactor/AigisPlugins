@@ -1,10 +1,12 @@
 
 const fs = require ('fs')
 const cp = require('child_process')
-
-const dataDir = '.\\plugins\\DeyunGroup\\tools\\assets\\'
+const path = require('path')
+console.log(this)
+var dataDir = ''
+var ALTools = ''
 var mailBox = null
-const ALTools = '.\\plugins\\DeyunGroup\\tools\\AL.bat'
+console.log(ALTools)
 
 class Cargo {
   constructor(){
@@ -27,31 +29,18 @@ class Cargo {
 }
 var cargo=new Cargo()
 
-function run(pluginHelper) {
-  mailBox = pluginHelper
-  mailBox.onMessage((msg, sendResponse) => {
-    switch (msg) {
-      case 'Request raw data':
-        if(cargo.isReady()){
-          sendResponse(cargo)
-        }
-        else {
-          sendResponse('Wait to ready')
-          cargo.isRequired = true
-        }
-    }
-  })
-}
-
 function donwloadAssets(key, attr) {
   let url = 'http://assets.millennium-war.net' + key[0]
-  let ls = cp.spawn(ALTools, [attr, url], {})
-  // ls.stderr.on('data', (data) => {
-  //     console.log('stderr: ' + data);
-  // })
+  let ls = cp.spawn(path.join(ALTools,'AL.bat'), [attr, url, ALTools], {})
+//   ls.stderr.on('data', (data) => {
+//       console.log('stderr: ' + data);
+//   })
+//   ls.stdout.on('data', (data) => {
+//     console.log('stdout: ' + data);
+// })
   ls.on('exit', (code) => {
       if (code === 0) {
-          fs.readFile(dataDir+attr, 'utf-8', (err, text) => {
+          fs.readFile(path.join(dataDir,attr), 'utf-8', (err, text) => {
               if (err) {
                   console.log(err)
               } 
@@ -93,6 +82,26 @@ function donwloadAssets(key, attr) {
       }
   })
 }
+
+
+function run(pluginHelper) {
+  dataDir = path.join(pluginHelper.electronService.APP.getPath('userData'), 'plugins\\DeyunGroup\\tools\\assets')
+  ALTools = path.join(pluginHelper.electronService.APP.getPath('userData'), 'plugins\\DeyunGroup\\tools')
+  mailBox = pluginHelper
+  mailBox.onMessage((msg, sendResponse) => {
+    switch (msg) {
+      case 'Request raw data':
+        if(cargo.isReady()){
+          sendResponse(cargo)
+        }
+        else {
+          sendResponse('Wait to ready')
+          cargo.isRequired = true
+        }
+    }
+  })
+}
+
 function newGameResponse(event, data) {
   switch (event) {
     case 'allcards-info':

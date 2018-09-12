@@ -1,8 +1,8 @@
 {
     "pluginName":"德云轮盘",
     "author":"BetAlice",
-    "version":"0.1.0",
-    "description":"命中注定的德云",
+    "version":"0.9.0",
+    "description":"是故君子居则观其象而玩其辞，动则观其变而玩其占",
     "entry":"index.html",
     "background":"background.js",
     "enable":false,

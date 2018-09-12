@@ -12,7 +12,7 @@ local function execute(...)
   for i = 1, select('#', ...) do
     command = command .. " " .. tostring(select(i, ...))
   end
-
+  print(command)
   assert(os.execute("cmd /C " .. command .. " 1>&2"))
 end
 

@@ -22,7 +22,7 @@
                     <el-table-column type="selection" width="40"></el-table-column>
                     <el-table-column prop="limitOption.ruleName" label="规则" align="center" width="200"></el-table-column>
 
-                    <el-table-column fixed="right" label="范围设定" align="center"  width="630">
+                    <el-table-column fixed="right" label="范围设定" align="center"  width="500">
                         <template slot-scope="scope">
                             <el-button :type="unitFilters[scope.$index].limitOption.isGlobal?'primary':'default'" @click.native.prevent="toggleAsGlobal(scope.$index, unitFilters)">设为全局限制</el-button>
                             <el-button :offset="50" @click.native.prevent="setUnitRange(scope.$index, unitFilters)">选择角色范围</el-button>
@@ -83,43 +83,7 @@
                             <el-button type="primary" @click="helpVisible = false">确 定</el-button>
                         </span>
                     </el-dialog>
-                <el-dialog title="备选名单" :visible.sync="cardsFormVisible" width="900">
-                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order:'descending'}" @sort-change="resetCardOrder">
-                        <el-table-column prop="Name" label="名字" :sort-by="['Name','ID']" align="center" sortable></el-table-column>
-                        <el-table-column prop="Class" label="职业" :sort-by="['Class','ID']" align="center" sortable width="180"></el-table-column>
-                        <el-table-column prop="Lv" label="等级" :sort-by="['Lv','ID']" align="center" sortable width="80"></el-table-column>
-                        <el-table-column prop="Rare" label="稀有度" :sort-method="rareSortMethod" align="center" sortable width="100"></el-table-column>
-                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
-                            <template slot-scope="cardscope">
-                                <div>
-                                    <el-radio-group v-model="unitCheckState[cardscope.$index]" size="small">
-                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '必选')" label="必选"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '移除')" label="移除"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '随机')" label="随机"></el-radio-button>
-                                    </el-radio-group>
-                                </div>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-dialog>
 
-                <el-dialog title="职业清单" :visible.sync="classFormVisible" width="600">
-                    <el-table :data="scroll.classList" border stripe max-height="500" :default-sort = "{prop: 'AttackMode', order: 'descending'}" @sort-change="resetClassOrder">
-                        <el-table-column prop="Name" :sort-by="['Name','ID']" sortable label="职业名" align="center"></el-table-column>
-                        <el-table-column prop="AttackMode" :sort-by="['AttackMode','ID']" sortable label="站位" align="center" width="80"></el-table-column>
-                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
-                            <template slot-scope="classscope">
-                                <div>
-                                    <el-radio-group v-model="classCheckState[classscope.$index]" size="small">
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '必选')" label="必选"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '移除')" label="移除"></el-radio-button>
-                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '随机')" label="随机"></el-radio-button>
-                                    </el-radio-group>
-                                </div>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-dialog>
                 <el-dialog title="设置抽选限制" :visible.sync="limitFormVisible">
                     <el-form :model="limitForm" :rules="limitFormRules" ref="limitForm" label-position="right">
                         <el-form-item label="规则名称" prop="ruleName">
@@ -128,20 +92,20 @@
                             </el-col>
                         </el-form-item>
                         <el-form-item label="人数范围" prop="num">
-                            <el-col :span="2">
+                            <el-col :span="3">
                                 <el-input v-model="limitForm.num.lowest"></el-input>
                             </el-col>
                             <el-col class="line" :span="2" align="center">——</el-col>
-                            <el-col :span="2">
+                            <el-col :span="3">
                                 <el-input v-model="limitForm.num.top"></el-time-picker>
                             </el-col>
                         </el-form-item>
                         <el-form-item label="等级范围" prop="level">
-                            <el-col :span="2">
+                            <el-col :span="3">
                                 <el-input v-model="limitForm.level.lowest"></el-input>
                             </el-col>
                             <el-col class="line" :span="2" align="center">——</el-col>
-                            <el-col :span="2">
+                            <el-col :span="3">
                                 <el-input v-model="limitForm.level.top"></el-time-picker>
                             </el-col>
                         </el-form-item>
@@ -168,6 +132,44 @@
                         <el-button @click="limitFormVisible = false">取 消</el-button>
                         <el-button type="success" @click="submitLimitForm(limitForm)">确 定</el-button>
                     </div>
+                </el-dialog>
+
+                <el-dialog id="unitChkList" title="备选名单" :visible.sync="cardsFormVisible" width="900">
+                    <el-table :data="unitCheckList" border stripe max-height="500" :default-sort = "{prop: 'Rare', order:'descending'}" @sort-change="resetCardOrder">
+                        <el-table-column prop="Name" label="名字" :sort-by="['Name','ID']" align="center" sortable></el-table-column>
+                        <el-table-column prop="Class" label="职业" :sort-by="['Class','ID']" align="center" sortable width="180"></el-table-column>
+                        <el-table-column prop="Lv" label="等级" :sort-by="['Lv','ID']" align="center" sortable width="80"></el-table-column>
+                        <el-table-column prop="Rare" label="稀有度" :sort-method="rareSortMethod" align="center" sortable width="100"></el-table-column>
+                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
+                            <template slot-scope="cardscope">
+                                <div>
+                                    <el-radio-group v-model="unitCheckState[cardscope.$index]" size="small">
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '必选')" label="必选"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '移除')" label="移除"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="cardChangeCheck(cardscope.$index, unitCheckList, '随机')" label="随机"></el-radio-button>
+                                    </el-radio-group>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-dialog>
+
+                <el-dialog id="classChkList"  title="职业清单" :visible.sync="classFormVisible" width="600">
+                    <el-table :data="classList" border stripe max-height="500" :default-sort = "{prop: 'AttackMode', order: 'descending'}" @sort-change="resetClassOrder">
+                        <el-table-column prop="Name" :sort-by="['Name','ID']" sortable label="职业名" align="center"></el-table-column>
+                        <el-table-column prop="AttackMode" :sort-by="['AttackMode','ID']" sortable label="站位" align="center" width="80"></el-table-column>
+                        <el-table-column fixed="right" label="选定规则" align="center" width="220">
+                            <template slot-scope="classscope">
+                                <div>
+                                    <el-radio-group v-model="classCheckState[classscope.$index]" size="small">
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '必选')" label="必选"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '移除')" label="移除"></el-radio-button>
+                                        <el-radio-button @click.native.prevent="classChangeCheck(classscope.$index, '随机')" label="随机"></el-radio-button>
+                                    </el-radio-group>
+                                </div>
+                            </template>
+                        </el-table-column>
+                    </el-table>
                 </el-dialog>
             </template>
         </el-main>
