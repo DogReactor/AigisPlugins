@@ -4,3 +4,5 @@ BootCamp/node_modules/
 BootCamp/BootCamp
 BootCamp/*.js
 DeyunGroup/tools/Utilities
+DeyunGroup/tools/Cache
+DeyunGroup/tools/assets
