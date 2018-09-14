@@ -2,11 +2,11 @@
 const fs = require ('fs')
 const cp = require('child_process')
 const path = require('path')
-console.log(this)
+
 var dataDir = ''
 var ALTools = ''
 var mailBox = null
-console.log(ALTools)
+
 
 class Cargo {
   constructor(){
@@ -105,8 +105,6 @@ function run(pluginHelper) {
 function newGameResponse(event, data) {
   switch (event) {
     case 'allcards-info':
-
-      fs.writeFile('cards',JSON.stringify(data),err=>{})
       let num = data['Ability'].length
       for (let i=0;i<num;++i){
         cargo.UnitsInfos[i]={}

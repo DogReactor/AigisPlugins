@@ -1,5 +1,6 @@
 const { parseInfos, lotteryMachine } = require('./js/function') 
 const fs = require ('fs')
+const path = require ('path')
 // const remote = require('electron').remote
 // remote.getCurrentWebContents().openDevTools()
 
@@ -69,7 +70,7 @@ function updateFilters() {
   }
 }
 function run(pluginHelper) {
-  configFile = path.join(pluginHelper.electronService.APP.getPath('userData'), 'plugins\\DeyunGroup\\config')
+  configFile = path.join(pluginHelper.plugin.realPath, 'config.json')
   fs.readFile(configFile, 'utf-8', (err, text) => {
     if(!err){
       rawFilters = JSON.parse(text)
@@ -463,8 +464,21 @@ var app = new Vue({
       row.isChosen=!row.isChosen
     },
     storeConfig() {
-      fs.writeFile(configFile, JSON.stringify(unitFilters), err => {})
-    },
+      console.log(configFile)
+      fs.writeFile(configFile, JSON.stringify(unitFilters), { flag: 'w', encoding: 'utf-8' }, err => {
+        if (err) {
+          this.$notify.error({
+            title: '保存配置失败',
+            message: err
+          })
+        } else {
+          this.$notify({
+            title: '保存配置成功',
+            type: 'success'
+          });
+        }
+      })
+      },
     generateTeam(table) {
       actFilters = unitFilters.filter(f => f.isChosen)
       if (actFilters.length < 1) {

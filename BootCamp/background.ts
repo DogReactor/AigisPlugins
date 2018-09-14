@@ -54,7 +54,7 @@ export function newGameResponse(event, data) {
             cargo.Orbs.Body= data
             mailBox.sendMessage(cargo.Orbs)
             break
-        case 'rEphfdmU':
+        case 'spirit-repo':
             cargo.SpiritRepo.Body=data
             mailBox.sendMessage(cargo.SpiritRepo)
             break
