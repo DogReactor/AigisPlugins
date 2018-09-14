@@ -10,7 +10,7 @@ const hints = ["安娜你算计我！", "人类的赞歌就是德云的赞歌", 
 "我考虑了一下还是无法接受啊", "堕落！萌死他卡多", "已经没什么好害怕的了", "不也挺好吗？",
 "只要能够德云我随便你搞", "所累哇多卡纳~"]
 
-const configFile='.\\plugins\\DeyunGroup\\config'
+var configFile=''
 
 var scroll = {
   unitList: [],
@@ -69,6 +69,7 @@ function updateFilters() {
   }
 }
 function run(pluginHelper) {
+  configFile = path.join(pluginHelper.electronService.APP.getPath('userData'), 'plugins\\DeyunGroup\\config')
   fs.readFile(configFile, 'utf-8', (err, text) => {
     if(!err){
       rawFilters = JSON.parse(text)
