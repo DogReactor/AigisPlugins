@@ -230,13 +230,13 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
         [exceedNum,bestGrades]=passFilters(partialFilters, candidates)
         if(exceedNum[0]>0) {
             pool=pool.filter(u=>!partialFilters[0].unitPassFilter(u))
-            for(let i=candidates.length -1;i>=0 && exceedNum[0]>0;--i) {
+            for(let i=candidates.length -1;i>=altStart && exceedNum[0]>0;--i) {
                 if(partialFilters[0].unitPassFilter(candidates[i])) {
                     candidates.splice(i,1)
                     --exceedNum[0]
                 }
             }
-            candidates=candidates.concat(pool.slice(0, bestGrades))
+            candidates=candidates.concat(pool.slice(0, bestGrades - exceedNum[0]))
         }
         else if (exceedNum[0]<0) {
             bestGrades=Math.abs(bestGrades)
@@ -247,9 +247,9 @@ function lotteryMachine(unitFilters, globalUnitRange, callback){
                     ++exceedNum[0]
                 }
             }
-            candidates=candidates.concat(pool.slice(0, bestGrades))
+            candidates=candidates.concat(pool.slice(0, exceedNum[0] - bestGrades))
         }
-        bestGrades=exceedNum[0]
+        bestGrades=Math.abs(exceedNum[0])
     }
     else if(partialFilters.length>1) {
         [exceedNum,bestGrades]=passFilters(partialFilters, candidates)

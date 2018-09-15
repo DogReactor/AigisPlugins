@@ -70,6 +70,7 @@ function updateFilters() {
   }
 }
 function run(pluginHelper) {
+  console.log(pluginHelper)
   configFile = path.join(pluginHelper.plugin.realPath, 'config.json')
   fs.readFile(configFile, 'utf-8', (err, text) => {
     if(!err){
