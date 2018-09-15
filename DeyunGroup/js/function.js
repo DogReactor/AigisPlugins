@@ -20,13 +20,13 @@ function calLv(exp,stage,rare) {
     //利用公式Exp=0.1793*Lv^2.877)猜一次等级
     var pLv=Math.min(Math.round(Math.pow(baseExp / 0.1793, 1 / 2.877)), 98);
     //与猜测等级附近的等级比较经验值，找出准确等级
-    while ((expList[pLv] > exp || expList[pLv + 1] <= exp) && expList[99] > exp) {
-      if (expList[pLv] > exp) {
-        pLv = pLv - 1;
-      } else {
-        pLv = pLv + 1;
+    while ((expList[pLv] > baseExp || expList[pLv + 1] <= baseExp) && expList[99] > baseExp) {
+        if (expList[pLv] > baseExp) {
+          pLv = pLv - 1
+        } else {
+          pLv = pLv + 1
+        }
       }
-    }
     pLv+=1
     if (pLv>rareInfo[rare].maxLevel[stage]){
         pLv=rareInfo[rare].maxLevel[stage]

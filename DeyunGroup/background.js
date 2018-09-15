@@ -31,7 +31,7 @@ var cargo=new Cargo()
 
 function donwloadAssets(key, attr) {
   let url = 'http://assets.millennium-war.net' + key[0]
-  let ls = cp.spawn(path.join(ALTools,'AL.bat'), [attr, url, ALTools], {})
+  let ls = cp.spawn(path.join(ALTools,'AL.bat'), [attr, url], {})
 //   ls.stderr.on('data', (data) => {
 //       console.log('stderr: ' + data);
 //   })

@@ -5,8 +5,8 @@ local dl = require("scripts\\lib\\download")
 local outPath = "assets\\"
 local working = "working\\"
 
-fileNames = {ClassInfos="PlayerUnitTable.aar",NameText="NameText.atb"}
-filePath = {ClassInfos="\\002_ClassData.atb\\ALTB_cldt.txt",NameText="\\ALTB_gdtx.txt"}
+local fileNames = {ClassInfos="PlayerUnitTable.aar",NameText="NameText.atb"}
+local filePath = {ClassInfos="\\002_ClassData.atb\\ALTB_cldt.txt",NameText="\\ALTB_gdtx.txt"}
 local outFilePath = outPath .. fileNames[file] .. filePath[file]
 local outFileEndPath = outPath .. file
 local text = dl.getfile(url, file)
