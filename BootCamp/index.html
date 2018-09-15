@@ -1,0 +1,159 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+    <div id="app" v-loading='fullscreenLoading' element-loading-text="加载数据中">
+
+        <el-header>
+            <template>
+
+
+                <el-row>
+                    <el-button type="info" plain @click="helpVisible=true" style="margin-top: 5">点我打开帮助</el-button>
+                    <el-button type="info" plain @click="storeConfig()" style="margin-top: 5">点我保存当前配置</el-button>
+                </el-row>
+            </template>
+        </el-header>
+        <el-container>
+
+
+
+            <el-main>
+                <template>
+                    <el-row type="flex" justify="space-between">
+                        <el-col :span="12">
+                            <el-checkbox-group v-model="filters.stage" @change="filterChange">
+                                <el-checkbox-button v-for="(r,i) in stageName" :label="r" :key="i"></el-checkbox-button>
+                            </el-checkbox-group>
+                        </el-col>
+
+                        <el-col :span="8">
+                            <el-checkbox-group v-model="filters.location" style="float:right" @change="filterChange">
+                                <el-checkbox-button v-for="(r,i) in locationName" :label="r" :key="i"></el-checkbox-button>
+                            </el-checkbox-group>
+                        </el-col>
+                    </el-row>
+                    <el-row type="flex" justify="space-between" style="margin-top:20">
+                        <el-col :span="18">
+                            <el-checkbox-group v-model="filters.rare" @change="filterChange">
+                                <el-checkbox-button v-for="(r,i) in rareName" :label="r" :key="i"></el-checkbox-button>
+                            </el-checkbox-group>
+                        </el-col>
+                        <el-col :span="3">
+                            <el-button type="primary" plain style="float:right" @click="classFormVisible=true">筛选职业</el-button>
+                        </el-col>
+                    </el-row>
+
+
+                    <el-table :data="unitList" border stripe :default-sort="{prop: 'UnitID', order:'descending'}" style="margin-top:40">
+                        <el-table-column prop="UnitID" label="ID" :sort-by="['UnitID','CardID']" align="center"
+                            sortable width="85"></el-table-column>
+                        <el-table-column prop="Name" label="名字" :sort-by="['Name','CardID']" align="center" sortable></el-table-column>
+                        <el-table-column prop="Class.Name" label="职业" :sort-by="['Class.Name','CardID']" align="center"
+                            sortable width="200"></el-table-column>
+                        <el-table-column prop="Stage" label="阶段" :sort-by="['EvoNum','CardID']" align="center" sortable
+                            width="120"></el-table-column>
+                        <el-table-column prop="LvString" label="等级" :sort-by="['Lv','CardID']" align="center" sortable
+                            width="100"></el-table-column>
+                        <el-table-column prop="Rare.Name" label="稀有度" :sort-by="['Rare.Order','CardID']" align="center"
+                            sortable width="100"></el-table-column>
+                        <el-table-column prop="SkillString" label="技能等级" :sort-by="['Skill.Level','CardID']" align="center"
+                            sortable width="110"></el-table-column>
+                        <el-table-column prop="CostString" label="Cost" :sort-by="['Cost','CardID']" align="center"
+                            sortable width="90"></el-table-column>
+                        <el-table-column label="操作" align="center" width="85">
+                            <template slot-scope="cardscope">
+                                <el-button @click.native.prevent="addToPlan(cardscope.row)" icon="el-icon-plus"></el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <el-dialog title="提示" :visible.sync="helpVisible" width="70%">
+                        <p>1.列出的单位中仅显示已上锁的单位，制订育成计划之前请先上锁</p>
+                        <p>2.非全局规则过多会显著提高计算时间，请斟酌使用</p>
+                        <p>3.算法不会遍历所有可能，所以非全局规则大于1条时匹配失败并不表明一定不可能匹配成功，可以多尝试几次</p>
+                        <p>4.无论在哪条规则下指定的单位限制都是全局有效的，而职业限制仅对该规则有效</p>
+                        <p>5.每条规则指定单位的页面中，备选单位仅显示符合目前该规则一般条件和职业限制的</p>
+                        <p>6.当前使用贪心算法匹配非全局限制，有更优雅地算法请大力CALL我_(:з」∠)_</p>
+                        <span slot="footer" class="dialog-footer">
+                            <el-button type="primary" @click="helpVisible = false">确 定</el-button>
+                        </span>
+                    </el-dialog>
+
+                    <el-dialog id="classChkList" title="职业清单" :visible.sync="classFormVisible" width="600">
+                        <el-checkbox-group v-model="filters.classRange" @change="filterChange">
+                            <el-checkbox-button v-for="(r,i) in classList" :label="r.Name" :key="i"></el-checkbox-button>
+                        </el-checkbox-group>
+                    </el-dialog>
+
+                    <el-dialog title="设置育成目标" :visible.sync="trainFormVisible" width="600">
+                        <el-form :model="unitCheckForm" ref="unitCheckForm" label-position="right">
+                            <el-form-item label="目标阶段和等级">
+                                <el-col :span="5">
+                                    <el-select v-model="unitCheckForm.TargetPro.Stage" placeholder="请选择阶段">
+                                        <el-option v-for="(stage,index) in unitCheckForm.StageAvaliable" :key="index"
+                                            :label="stage" :value="stage">
+                                        </el-option>
+                                    </el-select>
+                                </el-col>
+                                <el-col class="line" :span="2" align="center">——</el-col>
+                                <el-col :span="3">
+                                    <el-input v-model="unitCheckForm.TargetPro.Lv" placeholder="请输入等级">
+                                        </el-time-picker>
+                                </el-col>
+                            </el-form-item>
+                            <el-form-item label="使用经验资源">
+                                <div>
+                                    <el-checkbox v-model="unitCheckForm.UseBlackBucket" label="黑桶" border disabled></el-checkbox>
+                                    <el-checkbox v-model="unitCheckForm.UseSmallSpirits" label="小祝福" border disabled></el-checkbox>
+                                    <el-checkbox v-model="unitCheckForm.UseBlessings" label="大祝福" border disabled></el-checkbox>
+                                    <el-checkbox v-model="unitCheckForm.UseMaidSpirits" label="女仆祝福" border disabled></el-checkbox>
+                                </div>
+                            </el-form-item>
+                            <el-form-item label="技能等级">
+                                    <el-col :span="8">
+                                    <el-input-number v-model="unitCheckForm.TargetSkillLv" :min="unitCheckForm.InitSkillLv"
+                                        :max="unitCheckForm.MaxSkillLv" label="技能等级"></el-input-number>
+                                    </el-col>
+
+                                    <el-col :span="5">
+                                    <el-checkbox-button v-model="unitCheckForm.ToggleSkillEvo" :label="unitCheckForm.SkillEvoText"
+                                        :disabled="!unitCheckForm.SkillEvoAvaliable" style="float:right"></el-checkbox-button>
+                                    </el-col>
+                                    <el-col :span="7">
+                                    <el-checkbox v-model="unitCheckForm.UseGreatIridescence" label="使用大虹圣灵" border
+                                        disabled  style="float:right"></el-checkbox>
+                                    </el-col>
+                            </el-form-item>
+                            <el-form-item label="目标Cost">
+                                    <el-col :span="8">
+                                <el-input-number v-model="unitCheckForm.TargetCost" :min="unitCheckForm.InitCost - unitCheckForm.MaxReduceCost"
+                                    :max="unitCheckForm.InitCost" label="目标Cost"></el-input-number>
+                                    </el-col>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="classFormVisible = false">取 消</el-button>
+                            <el-button type="success" @click="submitCheckForm">确 定</el-button>
+                        </div>
+                    </el-dialog>
+                </template>
+            </el-main>
+        </el-container>
+    </div>
+</body>
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="./popup.js"></script>
+<script>
+
+</script>
+
+</html>

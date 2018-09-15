@@ -1,8 +1,10 @@
 node_modules
-BootCamp/node_modules/
-./.vscode
-BootCamp/BootCamp
-BootCamp/*.js
+.vscode
+BootCamp.bak
+BootCamp/tools/Utilities
+BootCamp/tools/Cache
+BootCamp/tools/assets
 DeyunGroup/tools/Utilities
 DeyunGroup/tools/Cache
 DeyunGroup/tools/assets
+KindomCamp

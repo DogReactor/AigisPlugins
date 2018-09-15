@@ -7,10 +7,11 @@
 --          v1.1   gm moved to library
 --                 besides providing the full atx png, also provide each individual atlased frame
 --                 don't remember other changes
-local gm = require("scripts/lib/gm")
+
 local function mkdir(where)
   os.execute("cmd /c if NOT EXIST \"" .. where .. "\" md \"" .. where .. "\"")
 end
+
 local function padlen(str)
   -- assume non-ASCII is double-width:
   local _, ASCII = str:gsub("[\000-\127]", "%1")
@@ -18,6 +19,7 @@ local function padlen(str)
   local l = #str
   return 2 * (utf8len - ASCII) + ASCII
 end
+
 local function padl(str, n)
   str = tostring(str)
   assert(padlen(str) <= n)
@@ -26,6 +28,7 @@ local function padl(str, n)
   end
   return str
 end
+
 local function padr(str, n)
   str = tostring(str)
   assert(padlen(str) <= n)
@@ -34,11 +37,14 @@ local function padr(str, n)
   end
   return str
 end
+
 local function nulfile(altype, where)
   local f = assert(io.open(where .. altype .. ".nul", "w"))
   assert(f:close())
 end
+
 local is_hex = {PatternID = true}
+
 local function output(obj, where, working, aux, hasaod)
   local filePaths = {}
   assert(where:sub(-1) == "\\" or where:sub(-1) == "/")
@@ -113,6 +119,7 @@ local function output(obj, where, working, aux, hasaod)
       end
     end
     
+    
     local str = ""
     for idx, entry in ipairs(obj.header.object) do
       local pad = padl
@@ -132,61 +139,6 @@ local function output(obj, where, working, aux, hasaod)
       assert(f:write(str, "\n"))
     end
     assert(f:close())
-  elseif altype == "ALTX" then
-    if type(obj.rawimage) == "table" then
-      local rawimage = obj.rawimage
-      local out_raw = assert(io.open(working .. "altx.raw", "wb"))
-      assert(out_raw:write(rawimage.image))
-      assert(out_raw:close())
-      local get_frame = aux.get_frame
-      if not get_frame then
-        gm.execute(("convert -size %dx%d rgba:%saltx.raw %saltx.png"):format(rawimage.width, rawimage.height, working, where))
-      end
-      
-      if not hasaod then
-        for idx, sprite in pairs(obj.sprites) do
-          --print(idx)
-          idx = idx % 4096
-          if get_frame == nil or idx == get_frame.index then
-            for frame_idx, frame in ipairs(sprite) do
-              if frame.width > 0 and frame.height > 0 then
-                local outwhere = where .. "frames/"
-                local fname = string.format("%03d_%03d.png", idx, frame_idx)
-                if sprite.name then
-                  fname = string.format("%03d_%s_%03d.png", idx, sprite.name, frame_idx)
-                end
-                if get_frame then
-                  outwhere = where
-                  if get_frame.name then
-                    fname = get_frame.name .. ".png"
-                  end
-                else
-                  mkdir(outwhere)
-                end
-                local outname = outwhere .. fname
-                local i = frame.y * obj.rawimage.width + frame.x
-                local image = ""
-                for _ = 1, frame.height do
-                  image = image .. obj.rawimage.image:sub(1 + 4 * i, 1 + 4 * (i + frame.width) - 1)
-                  i = i + obj.rawimage.width
-                end
-                local out_raw = assert(io.open(working .. "alod.raw", "wb"))
-                assert(out_raw:write(image))
-                assert(out_raw:close())
-                gm.execute(("convert -size %dx%d rgba:%salod.raw -trim %s"):format(frame.width, frame.height, working, outname))
-              end
-            end
-          end
-        end
-      end
-      
-    elseif type(obj.rawimage) == "string" then
-      local f = assert(io.open(where .. altype .. ".txt", "w"))
-      assert(f:write(obj.rawimage, "\n", tostring(obj.width), "\n", tostring(obj.height), "\n"))
-      assert(f:close())
-    else
-      nulfile(altype, where)
-    end
   elseif altype == "ALMT" then
     local name = where .. "ALMT.txt"
     local f = assert(io.open(name, "w"))
@@ -320,6 +272,7 @@ local function output(obj, where, working, aux, hasaod)
   end
   return filePaths
 end
+
 return {
   output = function(obj, where, working, aux)
     assert(working)
