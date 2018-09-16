@@ -8,3 +8,30 @@ body {
 [class^=el-icon-] {
     line-height: inherit
 }
+
+.classIcon {
+    position: relative;
+    height: 50px;
+    line-height: 50px;
+    width: 50px;
+    text-align: center;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 70% auto;
+    display: inline-table;
+    vertical-align: middle;
+}
+
+.classIcon:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(#2ed6eb 0%, #0172b7 100%);
+    box-shadow: 0 0 5px white;
+    border-radius: 50%;
+    opacity: 0.6;
+    border: 1px solid white;
+}

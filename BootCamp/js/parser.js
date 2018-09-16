@@ -202,9 +202,36 @@ function parseUnits(rawData, classTree) {
     return unitsList
 }
 
+function parseOrbs(Orbs) {
+    // const  orbsIndex=[
+    //  23,52,54,73,77,
+    //  2,5,22,25,76,
+    //  0,3,56,59,72,
+    //  1,7,27,30,58,
+    //  21,26,28,53,55,
+    //  33,35,36,78,85,
+    //  29,37,84,86,87]
+    //  const days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+    //  let orbsStore=[]
+    //  Orbs.forEach(e => {
+    //      for(let i=0;i<4;++i) {
+    //          let n=e&0xFF
+    //          e=e>>8
+    //          orbsStore.push(n)
+    //      }
+    //  });
+    //  let orbsNum=[]
+    //  orbsIndex.forEach(i=>{
+    //      orbsNum.push(orbsStore[i])
+    //  })
+ 
+    //  return orbsNum
+ }
+
 function parseRes(rawData) {
 
-    let resRepo=[]
+    let resRepo={}
+    resRepo.Orbs=parseOrbs(rawData.Orbs)
     return resRepo
 }
 // 解析所需的信息

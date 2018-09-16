@@ -1,78 +1,117 @@
-const { expList, locationName, stageInfos, rareInfos, calLv } = require('./scheme')
+const { expList, locationName, stageInfos, rareInfos, calLv, orbsInfo } = require('./scheme')
 const { probCom } = require('./math')
 const expRes = {
     BucketPackNum: {
         Name: '白桶套餐',
         Exp: [8000, 8000, 8000, 8000, 8000, 8000, 8000, 8000],
         getCost(cost,num,mode=[1,3]) {
-            cost.BucketCost+=mode[0]*num
-            cost.SpiritsCost+=mode[1]*num
+            cost.Bucket+=mode[0]*num
+            cost.Spirits+=mode[1]*num
         }
     },
     BlackBucketNum: {
         Name: '黑桶套餐',
         Exp: [40000, 40000, 40000, 40000, 40000, 40000, 40000, 40000],
         getCost(cost,num,mode=[1,3]) {
-            cost.BlackBucketCost+=mode[0]*num
-            cost.SpiritsCost+=mode[1]*num
+            cost.BlackBucket+=mode[0]*num
+            cost.Spirits+=mode[1]*num
         }
     },
     LittleSpiritsNum: {
         Name: '小祝福',
         Exp: [0, 0, 4000, 18000, 19000, 20000, 0, 190000],
         getCost(cost,num, mode = [1,3]) {
-            cost.LittleSpiritsCost+=num
+            cost.LittleSpirits+=num
         }
     },
     Blessing: {
         Name: '大祝福',
         Exp: [150000, 150000, 150000, 150000, 150000, 150000, 0, 150000],
         getCost(cost,num, mode = [1,3]) {
-            cost.BlessingCost+=num
+            cost.Blessing=num
         }
     },
     MaidSpiritsNum: {
         Name: '女仆圣灵',
         Exp: [10000, 10000, 10000, 10000, 10000, 10000, 0, 10000],
         getCost(cost,num, mode = [1,3]) {
-            cost.MaidSpiritsCost+=num
+            cost.MaidSpirits+=num
         }
     },
 }
 
 const costResDesc = {
-    BucketCost:{
+    Bucket:{
         getName(info) {
             return '白桶'
         }
     },
-    GoldCost:{
+    Spirits : {
+        getName(info) {
+            return info.Rare.Name+'圣灵'
+        }
+    },
+    Gol:{
         getName(info) {
             return '金'
         }
     },
-    SpiritsCost : {
+    Orbs: {
+        getName(info) {
+            let deschtml=''
+            info.Class.Orbs.forEach(c=>{deschtml+=orbsInfo[c].ImgHtml})
+            return deschtml
+        }
+    },
+    AWSpirits : {
         getName(info) {
             return '觉醒圣灵'
         }
     },
-    AWSpiritsCost : {
+    AW2Spirits:{
         getName(info) {
-            return '觉醒圣灵'
+            return '闇圣灵'
         }
     },
-    AW2SpiritsCost:0,
-    LittleSpiritsCost:0,
-    MaidSpiritsCost:0,
-    BlessingCost:0
+    LittleSpirits:{
+        getName(info) {
+            return '小'+info.Rare.Name+'祝福'
+        }
+    },
+    MaidSpirits:{
+        getName(info) {
+            return '女仆圣灵'
+        }
+    },
+    Blessing:{
+        getName(info) {
+            return '大祝福'
+        }
+    },
+    Iridescence:{
+        getName(info) {
+            return '虹圣灵'
+        }
+    },
+    SkillEvoSpirit:{
+        getName(info) {
+            return '技觉圣灵'
+        }
+    },
+    Kizuna:{
+        getName(info) {
+            return '绊圣灵'
+        }
+    },
 }
 class Plan {
     constructor(unit) {
         this.UnitID = unit.ID
         this.UnitName = unit.Name
+        this.Unit=unit
         this.ExpTrace = []
         this.ExpTraceNode = []
-        this.Desc = []
+        this.DescHtml = ''
         this.Cost={
             Bucket:0,
             Spirits:0,
@@ -94,10 +133,6 @@ class Plan {
             Blessing:[],
             MaidSpiritsNum:[]
         }
-        this.Orbs = []
-        this.Cost = 0
-        this.IridescenceCost = 0
-        this.Cost = 0
         this.ExpUp=false
         this.SkillUp=false
         this.CostDown=false
@@ -107,14 +142,16 @@ class Plan {
 function calExpUp(plan, checkForm) {
     let unit = checkForm.Unit
     plan.ExpTrace = unit.getResExp(checkForm.TargetPro)
-    plan.ExpTrace.forEach((expRes, i) => {
-        plan.ExpPackNum.keys().forEach(k=>{
+    plan.ExpTrace.forEach((expR, i) => {
+        Object.keys(plan.ExpPackNum).forEach(k=>{
             plan.ExpPackNum[k][i]=0
         })
-        let choosedRes=BucketPackNum
-        let exp = expRes
+        let choosedRes='BucketPackNum'
+        let exp = expR
         let energy = expRes[choosedRes].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
+        
         plan.ExpPackNum[choosedRes][i] = Math.floor(exp/energy)
+        console.log(plan.ExpPackNum[choosedRes][i],exp,energy)
         expRes[choosedRes].getCost(plan.Cost, plan.ExpPackNum[choosedRes][i],[checkForm.BucketPackCost[0], checkForm.BucketPackCost[1]])
 
         exp -= plan.ExpPackNum[choosedRes][i] * energy
@@ -143,14 +180,6 @@ function calExpUp(plan, checkForm) {
         }
     }
 
-
-    plan.CostDesc.push('白桶消耗：'+plan.BucketCost+'    '+)
-    if(AWCostDesc!='') {
-        plan.CostDesc
-    }
-    let descs= []
-    
-    plan.ExpTraceDesc=descs.join('=> ')
     plan.ExpUp=true
 }
 
@@ -170,7 +199,6 @@ function calSkillUp(plan, checkForm) {
     }
     let actChance = upSkillChance[checkForm.MaxSkillLv].map(p=>probCom(p,checkForm.Luck/100))
     actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.IridescenceCost+=1/c)
-    plan.CostDesc.push('期望虹圣灵消耗：'+plan.IridescenceCost.toString())
     plan.SkillUp=true
 }
 
@@ -179,25 +207,37 @@ function calCostReduce(plan, checkForm) {
     const costReduceChance = [1,0.5,0.25,0.25,0.25,0.25]
     let actChance = costReduceChance.map(p=>probCom(p,checkForm.Luck/100))
     actChance.slice(unit.ReducedCost,checkForm.InitCost+unit.ReducedCost-checkForm.TargetCost).forEach(c=>plan.KizunaCost+=1/c)
-    plan.CostDesc.push('期望绊消耗：'+plan.KizunaCost.toString())
     plan.CostDown = true
 }
 function generateDesc(plan) {
 
     let desc=[]
+    let partDesc=[]
     plan.ExpTraceNode.forEach((n,i)=>{
-        let stage = stageInfos[unit.EvoNum+i].Name
+        let stage = stageInfos[plan.Unit.EvoNum+i].Name
         let node = n.Lv.toString()+'['+n.NextExp.toString()+']'
         let res=[]
-        plan.ExpPackNum.keys().forEach((k,i)=>{
+        Object.keys(plan.ExpPackNum).forEach((k,i)=>{
             if(plan.ExpPackNum[k][i]>0) {
                 res.push(expRes[k].Name+'×'+plan.ExpPackNum[k][i].toString())
             }
         })
-       desc.push(stage+': '+node+' + ('+res.join(' | ')+') ')
+        partDesc.push(stage+': '+node+' + ('+res.join(' | ')+') ')
     })
-    plan.Desc.push(desc.join(' => '))
+    desc.push(partDesc.join(' => '))
 
+    partDesc=[]
+    Object.keys(plan.Cost).forEach(k=>{
+        if(plan.Cost[k]>0) {
+            console.log(k)
+            partDesc.push(costResDesc[k].getName(plan.Unit)+": "+plan.Cost[k].toString())
+        }
+    })
+    desc.push(partDesc.join(',  '))
+
+    plan.DescHtml=desc.join('</div><div>')
+    plan.DescHtml.padStart(5,'<div>')
+    plan.DescHtml.padEnd(6,'</div>')
 
 
 }

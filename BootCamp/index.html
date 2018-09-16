@@ -51,7 +51,7 @@
 
                     <el-collapse v-model="activeNames" v-show="trainForm.length"  style="margin-top:40">
                         <el-collapse-item v-for="(r,i) in trainForm" :name="r.UnitName" :key="i" :title="r.UnitName">
-                          <div>{{ r.ExpTraceDesc }}</div>
+                          <div v-html="r.DescHtml"></div>
                         </el-collapse-item>
                     </el-collapse>
                     <el-table :data="unitList" border stripe :default-sort="{prop: 'UnitID', order:'descending'}" style="margin-top:40">
