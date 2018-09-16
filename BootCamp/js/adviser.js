@@ -51,7 +51,7 @@ const costResDesc = {
             return info.Rare.Name+'圣灵'
         }
     },
-    Gol:{
+    Gold:{
         getName(info) {
             return '金'
         }
@@ -151,8 +151,7 @@ function calExpUp(plan, checkForm) {
         let energy = expRes[choosedRes].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
         
         plan.ExpPackNum[choosedRes][i] = Math.floor(exp/energy)
-        console.log(plan.ExpPackNum[choosedRes][i],exp,energy)
-        expRes[choosedRes].getCost(plan.Cost, plan.ExpPackNum[choosedRes][i],[checkForm.BucketPackCost[0], checkForm.BucketPackCost[1]])
+        expRes[choosedRes].getCost(plan.Cost, plan.ExpPackNum[choosedRes][i],checkForm.BucketPackCost)
 
         exp -= plan.ExpPackNum[choosedRes][i] * energy
         if(i===0) {
@@ -166,16 +165,16 @@ function calExpUp(plan, checkForm) {
 
     for (let i = 1; i < plan.ExpTrace.length; ++i) {
         if(unit.EvoNum+i===1) {
-            plan.Cost.SpiritsCost+=1
+            plan.Cost.Spirits+=1
         }
         if (unit.EvoNum + i >= 2) {
-            plan.Cost.OrbsCost += unit.Rare.OrbCost
-            plan.Cost.GoldCost += unit.Rare.AWGoldCost
+            plan.Cost.Orbs += unit.Rare.OrbCost
+            plan.Cost.Gold += unit.Rare.AWGoldCost
             if(unit.EvoNum + i === 2) {
-                plan.AWSpiritsCost += 1
+                plan.Cost.AWSpirits += 1
             }
             else if(unit.EvoNum + i === 3) {
-                plan.AW2SpiritsCost += 1
+                plan.Cost.AW2Spirits += 1
             }
         }
     }
@@ -187,9 +186,9 @@ function calExpUp(plan, checkForm) {
 function calSkillUp(plan, checkForm) {
     let unit = checkForm.Unit
     if(checkForm.ToggleSkillEvo) {
-        plan.SkillEvoSpiritCost+=1
-        plan.GoldCost += unit.Rare.AWGoldCost
-        plan.OrbsCost = unit.Class.Orbs.map((o,i)=> plan.OrbsCost[i] + unit.Rare.OrbCost)
+        plan.Cost.SkillEvoSpirit+=1
+        plan.Cost.Gold += unit.Rare.AWGoldCost
+        plan.Cost.Orbs = unit.Rare.OrbCost
     }
     const upSkillChance = {
         '3': [1, 0.25],
@@ -198,7 +197,7 @@ function calSkillUp(plan, checkForm) {
         '16': [1, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25]
     }
     let actChance = upSkillChance[checkForm.MaxSkillLv].map(p=>probCom(p,checkForm.Luck/100))
-    actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.IridescenceCost+=1/c)
+    actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.Cost.Iridescence+=1/c)
     plan.SkillUp=true
 }
 
@@ -206,7 +205,7 @@ function calCostReduce(plan, checkForm) {
     let unit = checkForm.Unit
     const costReduceChance = [1,0.5,0.25,0.25,0.25,0.25]
     let actChance = costReduceChance.map(p=>probCom(p,checkForm.Luck/100))
-    actChance.slice(unit.ReducedCost,checkForm.InitCost+unit.ReducedCost-checkForm.TargetCost).forEach(c=>plan.KizunaCost+=1/c)
+    actChance.slice(unit.ReducedCost,checkForm.InitCost+unit.ReducedCost-checkForm.TargetCost).forEach(c=>plan.Cost.Kizuna+=1/c)
     plan.CostDown = true
 }
 function generateDesc(plan) {
@@ -217,7 +216,7 @@ function generateDesc(plan) {
         let stage = stageInfos[plan.Unit.EvoNum+i].Name
         let node = n.Lv.toString()+'['+n.NextExp.toString()+']'
         let res=[]
-        Object.keys(plan.ExpPackNum).forEach((k,i)=>{
+        Object.keys(plan.ExpPackNum).forEach((k,j)=>{
             if(plan.ExpPackNum[k][i]>0) {
                 res.push(expRes[k].Name+'×'+plan.ExpPackNum[k][i].toString())
             }
@@ -229,7 +228,6 @@ function generateDesc(plan) {
     partDesc=[]
     Object.keys(plan.Cost).forEach(k=>{
         if(plan.Cost[k]>0) {
-            console.log(k)
             partDesc.push(costResDesc[k].getName(plan.Unit)+": "+plan.Cost[k].toString())
         }
     })

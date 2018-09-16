@@ -16,7 +16,7 @@ class RareStage {
             this.OrbCost = 0
         }
         else {
-            this.AWGoldCost = 20 + (this.ID - 3) * 5
+            this.AWGoldCost = (20 + (this.ID - 3) * 5)*10000
             this.OrbCost = this.ID - 2
             this.MaxGrowth = 3
         }
@@ -87,25 +87,6 @@ function calLv(exp,stage,rare) {
 }
 
 
-const  orbsIndex=[
-    23,52,54,73,77,
-    2,5,22,25,76,
-    0,3,56,59,72,
-    1,7,27,30,58,
-    21,26,28,53,55,
-    33,35,36,78,85,
-    29,37,84,86,87
-]
-const orbsClass=[
-    1210,10210,10010,10910,11310,
-    310,1110,1410,610,11210,
-    110,410,10410,10710,10810,
-    210,810,1610,10610,1910,
-    10110,1010,1510,10310,1710,
-    2410,2210,11410,2510,12110,
-    2610,1810,12010,12210,12310
-
-]
 const orbsInfo = {
     "110":{Index:0,Time:3,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/1.png\"> </div>"},"210":{Index:1,Time:4,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/2.png\"> </div>"},"310":{Index:2,Time:2,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/3.png\"> </div>"},"410":{Index:3,Time:3,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/4.png\"> </div>"},"610":{Index:5,Time:2,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/5.png\"> </div>"},"810":{Index:7,Time:4,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/6.png\"> </div>"},"1010":{Index:21,Time:5,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/7.png\"> </div>"},"1110":{Index:22,Time:2,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/8.png\"> </div>"},"1210":{Index:23,Time:1,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/9.png\"> </div>"},"1410":{Index:25,Time:2,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/10.png\"> </div>"},"1510":{Index:26,Time:5,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/11.png\"> </div>"},"1610":{Index:27,Time:4,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/12.png\"> </div>"},"1710":{Index:28,Time:5,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/13.png\"> </div>"},"1810":{Index:29,Time:7,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/14.png\"> </div>"},"1910":{Index:30,Time:4,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/15.png\"> </div>"},"2210":{Index:33,Time:6,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/16.png\"> </div>"},"2410":{Index:35,Time:6,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/17.png\"> </div>"},"2510":{Index:36,Time:6,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/18.png\"> </div>"},"2610":{Index:37,Time:7,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/19.png\"> </div>"},"10010":{Index:52,Time:1,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/20.png\"> </div>"},"10110":{Index:53,Time:5,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/21.png\"> </div>"},"10210":{Index:54,Time:1,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/22.png\"> </div>"},"10310":{Index:55,Time:5,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/23.png\"> </div>"},"10410":{Index:56,Time:3,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/24.png\"> </div>"},"10610":{Index:58,Time:4,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/25.png\"> </div>"},"10710":{Index:59,Time:3,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/26.png\"> </div>"},"10810":{Index:72,Time:3,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/27.png\"> </div>"},"10910":{Index:73,Time:1,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/28.png\"> </div>"},"11210":{Index:76,Time:2,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/29.png\"> </div>"},"11310":{Index:77,Time:1,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/30.png\"> </div>"},"11410":{Index:78,Time:6,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/31.png\"> </div>"},"12010":{Index:84,Time:7,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/32.png\"> </div>"},"12110":{Index:85,Time:6,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/33.png\"> </div>"},"12210":{Index:86,Time:7,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/34.png\"> </div>"},"12310":{Index:87,Time:7,ImgHtml:"<div class=\"classIcon\"> <img src=\"img/35.png\"> </div>"},
     getClass(index) {
