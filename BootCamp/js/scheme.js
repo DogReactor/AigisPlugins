@@ -85,6 +85,8 @@ function calLv(exp,stage,rare) {
 
     return [pLv,restExp]
 }
+
+
 module.exports = {
     stageInfos:stageInfos,
     rareInfos:rareInfos,

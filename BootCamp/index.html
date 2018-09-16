@@ -49,7 +49,11 @@
                         </el-col>
                     </el-row>
 
-
+                    <el-collapse v-model="activeNames" v-show="trainForm.length"  style="margin-top:40">
+                        <el-collapse-item v-for="(r,i) in trainForm" :name="r.UnitName" :key="i" :title="r.UnitName">
+                          <div>{{ r.ExpTraceDesc }}</div>
+                        </el-collapse-item>
+                    </el-collapse>
                     <el-table :data="unitList" border stripe :default-sort="{prop: 'UnitID', order:'descending'}" style="margin-top:40">
                         <el-table-column prop="UnitID" label="ID" :sort-by="['UnitID','CardID']" align="center"
                             sortable width="85"></el-table-column>
@@ -136,10 +140,20 @@
                                     :max="unitCheckForm.InitCost" label="目标Cost"></el-input-number>
                                     </el-col>
                             </el-form-item>
+                            <el-form-item label="脸度">
+                                <el-col :span="15">
+                                    <div class="block">
+                                        <el-slider
+                                          v-model="unitCheckForm.Luck"
+                                          show-input>
+                                        </el-slider>
+                                      </div>
+                                </el-col>
+                        </el-form-item>
                         </el-form>
                         <div slot="footer" class="dialog-footer">
-                            <el-button @click="classFormVisible = false">取 消</el-button>
-                            <el-button type="success" @click="submitCheckForm">确 定</el-button>
+                            <el-button @click="trainFormVisible = false">取 消</el-button>
+                            <el-button type="success" @click="submitCheckForm(unitCheckForm)">确 定</el-button>
                         </div>
                     </el-dialog>
                 </template>

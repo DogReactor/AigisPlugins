@@ -95,9 +95,14 @@ class UnitCheckForm {
     this.MaxReduceCost=u.RemainCost
     this.TargetCost = u.Cost
     this.BucketPackCost = [1, 3]
-    this.GlobalExpMult = scroll.GlobalExpMult
+    this.Luck = 50
+    this.GlobalExpMult = 1
+    this.IsExpUp = true
+    this.IsSkillUp = false
+    this.IsCostDown = false
   }
 }
+
 var app = new Vue({
   el: '#app',
   data() {
@@ -116,7 +121,9 @@ var app = new Vue({
       unitCheckForm:{
         TargetPro: {Lv:1, Stage:'CC前'}
       },
-      expResource:['小祝福','']
+      expResource:['小祝福',''],
+      trainForm:[],
+      activeNames:[]
     }
   },
   methods: {
@@ -146,8 +153,32 @@ var app = new Vue({
       this.trainFormVisible = true
     },
 
-    submitCheckForm() {
+    submitCheckForm(form) {
+      if(form.Unit.IsOverLv||
+          (form.StageAvaliable[0]===form.TargetPro.Stage&&form.TargetPro.Lv<=form.Unit.Lv)) {
+          form.IsExpUp=false
+        }
+      
+      if(form.TargetSkillLv>form.Unit.Skill.Level) {
+        form.IsSkillUp = true
+      }
 
+      if(form.TargetCost<form.Unit.Cost) {
+        form.IsCostDown = true
+      }
+
+      if(form.IsExpUp||form.IsSkillUp||form.IsCostDow) {
+        console.log(form)
+        this.trainForm.push(formulatePlan(form))
+        this.activeNames.push(form.Unit.Name)
+        this.trainFormVisible = false
+      }
+      else {
+        this.$message({
+          message: '没有育成的必要！',
+          type: 'warning'
+        });
+      }
     }
 
   }

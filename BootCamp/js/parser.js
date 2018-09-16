@@ -24,21 +24,23 @@ class Unit {
     getResExp(targetPro) {
         let resExp = []
         let maxLvID = this.Rare.ID
+        let faceEnd = false
         for(let i = this.EvoNum;i<=this.MaxGrowth;++i){
             let s= stageInfos[i]
             let startExp = 0
-            let endExp = expList[s.MaxLevel[maxLvID]-1] * this.Rare.ExpMult
+            let endExp = Math.round(expList[s.MaxLevel[maxLvID]-1] * this.Rare.ExpMult)
             if(s.Name===this.Stage) {
                 startExp = this.Exp
             }
             if(s.Name===targetPro.Stage) {
-                endExp =expList[targetPro.Lv - 1] * this.Rare.ExpMult
+                endExp =Math.round(expList[targetPro.Lv - 1] * this.Rare.ExpMult)
+                faceEnd = true
             }
             let exp = endExp - startExp
             if(exp>0) {
                 resExp.push(exp)
             }
-            else {
+            if(exp < 0 || faceEnd===true) {
                 break
             }
         }
