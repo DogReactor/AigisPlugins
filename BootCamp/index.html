@@ -15,7 +15,8 @@
 
                 <el-row>
                     <el-button type="info" plain @click="helpVisible=true" style="margin-top: 5">点我打开帮助</el-button>
-                    <el-button type="info" plain @click="storeConfig()" style="margin-top: 5">点我保存当前配置</el-button>
+                    <el-button type="success" plain @click="storeConfig()" style="margin-top: 5">点我保存当前配置</el-button>
+                    <el-button type="danger" plain @click="clearConfig()" style="margin-top: 5">点我清空配置</el-button>
                 </el-row>
             </template>
         </el-header>
@@ -83,11 +84,12 @@
 
                     <el-dialog title="提示" :visible.sync="helpVisible" width="70%">
                         <p>1.列出的单位中仅显示已上锁的单位，制订育成计划之前请先上锁</p>
-                        <p>2.非全局规则过多会显著提高计算时间，请斟酌使用</p>
-                        <p>3.算法不会遍历所有可能，所以非全局规则大于1条时匹配失败并不表明一定不可能匹配成功，可以多尝试几次</p>
-                        <p>4.无论在哪条规则下指定的单位限制都是全局有效的，而职业限制仅对该规则有效</p>
-                        <p>5.每条规则指定单位的页面中，备选单位仅显示符合目前该规则一般条件和职业限制的</p>
-                        <p>6.当前使用贪心算法匹配非全局限制，有更优雅地算法请大力CALL我_(:з」∠)_</p>
+                        <p>2.当前使用经验资源的方式为优先使用经验值多的，因此结果不一定是最优值。例如：单位需要16000经验时，会给出1女仆圣灵（如果选中）而非2白桶套餐的结果</p>
+                        <p>3.选中技能觉醒时，如果当前技能等级不够，将强制设置目标技能等级为满级</p>
+                        <p>4.已知Bug：调整技能等级数值后再点击技能觉醒可能无效，此时需要再点几下技能等级后重新点技觉按钮</p>
+                        <p>5.减C概率规则为第1C 100%，第2C 50%，之后25%。暂未找到方法实现完整的减C概率规则</p>
+                        <p>6.关于脸度：表征幸运值在人群中位置的量，按正态分布分位点相加原则影响加技、减C的成功率。脸度100（超越所有人的欧皇）时无视基准概率必定成功，脸度0（黑于所有人的非酋）时必定失败，脸度50（水准正中的普通人）适用标准概率</p>
+                        <p>7.部分选项仍在开发中，暂不可用_(:з」∠)_</p>
                         <span slot="footer" class="dialog-footer">
                             <el-button type="primary" @click="helpVisible = false">确 定</el-button>
                         </span>
@@ -99,7 +101,7 @@
                         </el-checkbox-group>
                     </el-dialog>
 
-                    <el-dialog :title="'设置育成目标   ——'+ unitCheckForm.UnitName" :visible.sync="trainFormVisible" width="600">
+                    <el-dialog :title="'设置育成目标   ——   '+ unitCheckForm.UnitName" :visible.sync="trainFormVisible" width="600">
                         <el-form :model="unitCheckForm" ref="unitCheckForm" label-position="right">
                             <el-form-item label="目标阶段和等级">
                                 <el-col :span="5">

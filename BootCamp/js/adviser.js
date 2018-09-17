@@ -46,6 +46,11 @@ const costResDesc = {
             return '白桶'
         }
     },
+    BlackBucket:{
+        getName(info) {
+            return '黑桶'
+        }
+    },
     Spirits : {
         getName(info) {
             return info.Rare.Name+'圣灵'
@@ -105,15 +110,17 @@ const costResDesc = {
     },
 }
 class Plan {
-    constructor(unit) {
-        this.UnitID = unit.UnitID
-        this.UnitName = unit.Name
-        this.Unit=unit
+    constructor(checkform) {
+        this.UnitID = checkform.Unit.UnitID
+        this.UnitName = checkform.Unit.Name
+        this.Unit=checkform.Unit
+        this.CheckForm=checkform
         this.ExpTrace = []
         this.ExpTraceNode = []
         this.DescHtml = ''
         this.Cost={
             Bucket:0,
+            BlackBucket:0,
             Spirits:0,
             Gold:0,
             Orbs: 0,
@@ -206,6 +213,7 @@ function calSkillUp(plan, checkForm) {
         plan.Cost.SkillEvoSpirit+=1
         plan.Cost.Gold += unit.Rare.AWGoldCost
         plan.Cost.Orbs = unit.Rare.OrbCost
+        checkForm.TargetSkillLv=unit.Skill.MaxLv[1]
     }
     const upSkillChance = {
         '3': [1, 0.25],
@@ -214,7 +222,10 @@ function calSkillUp(plan, checkForm) {
         '16': [1, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.25]
     }
     let actChance = upSkillChance[checkForm.MaxSkillLv].map(p=>probCom(p,checkForm.Luck/100))
-    actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.Cost.Iridescence+=1/c)
+    if(checkForm.TargetSkillLv!=checkForm.InitSkillLv) {
+        actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.Cost.Iridescence+=1/c)
+    }
+    
 }
 
 function calCostReduce(plan, checkForm) {
@@ -258,7 +269,7 @@ function generateDesc(plan) {
 }
 
 function formulatePlan(checkForm) {
-    let plan = new Plan(checkForm.Unit)
+    let plan = new Plan(checkForm)
     if(checkForm.IsExpUp) {
         calExpUp(plan,checkForm)
     }

@@ -1,4 +1,4 @@
-const { expList, locationName, stageInfos, rareInfos, calLv } = require('./scheme')
+const { expList, locationName, stageInfos, rareInfos, calLv, translateName } = require('./scheme')
 
 
 
@@ -191,11 +191,16 @@ function parseUnits(rawData, classTree) {
         unit.Cost = parseInt(cardObj.CostModValue)+classObj.Cost+parseInt(unitObj.AA)
         unit.Location = locationName[Math.floor(parseInt(unitObj.AE)/16)]
 
+        if(unit.RealName==='アンナ') {
+            unit.Lv=Math.min(unit.Lv,30)
+            unit.NextExp = 0
+        }
+
         
         unit.LvString = unit.Lv.toString()+'['+(unit.NextExp===0?'MAX':unit.NextExp.toString())+']'
         let skillMaxLvI = unit.Skill.Evo.findIndex(e=>e===unit.Skill.ID)
         unit.SkillString = unit.Skill.Level.toString() +'/'+ unit.Skill.MaxLv[skillMaxLvI].toString()
-        unit.CostString = unit.Cost.toString()+'(+'+(unit.RemainCost===0?'MIN':unit.RemainCost) +')'
+        unit.CostString = unit.Cost.toString()+'('+(unit.RemainCost===0?'MIN':('+'+unit.RemainCost)) +')'
         unitsList.push(unit)
     });
     return unitsList
@@ -260,6 +265,11 @@ async function parseInfos(rawData){
             InitEvo:c.Depth
         })
     })
+
+    translateName(scroll.classList)
+
+
+
     scroll.resRepo = parseRes(rawData)
 
     return scroll

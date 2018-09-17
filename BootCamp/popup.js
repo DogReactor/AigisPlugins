@@ -23,7 +23,13 @@ var scroll = {
 
 function run(pluginHelper) {
   configFile = path.join(pluginHelper.plugin.realPath, 'config.json')
-
+  let storedForm = []
+  fs.readFile(configFile,(err,data)=>{
+    if(!err&&data) {
+      storedForm=JSON.parse(data)
+    }
+    
+  })
   pluginHelper.sendMessage('Request raw data', (response) => {
     if (response === 'Wait to ready') {} else {
       console.log('Received data')
@@ -33,6 +39,10 @@ function run(pluginHelper) {
         filters.classRange = scroll.classList.map(x=>x.Name)
         app.unitList= scroll.unitList.filter(u=>filters.passFilter(u))
         app.classList=scroll.classList
+        storedForm.forEach(f=>{
+          f.Unit = scroll.unitList.find(u=>u.UnitID===f.Unit.UnitID)
+          app.submitCheckForm(f)
+        })
       })
 
       app.fullscreenLoading=false
@@ -130,7 +140,8 @@ var app = new Vue({
   methods: {
     storeConfig() {
       console.log(configFile)
-      fs.writeFile(configFile, JSON.stringify('Plan'), { flag: 'w', encoding: 'utf-8' }, err => {
+      let chkForms = this.trainForm.map(p=>p.CheckForm)
+      fs.writeFile(configFile, JSON.stringify(chkForms), { flag: 'w', encoding: 'utf-8' }, err => {
         if (err) {
           this.$notify.error({
             title: '保存配置失败',
@@ -143,6 +154,24 @@ var app = new Vue({
           });
         }
       })
+    },
+
+    clearConfig() {
+      if(fs.existsSync(configFile)){
+        fs.unlink(configFile,(err)=>{
+          if (err) {
+            this.$notify.error({
+              title: '清空配置失败',
+              message: err
+            })
+          } else {
+            this.$notify({
+              title: '清空配置成功',
+              type: 'success'
+            });
+          }
+        })
+      }
     },
 
     filterChange() {
@@ -160,7 +189,7 @@ var app = new Vue({
           form.IsExpUp=false
         }
       
-      if(form.TargetSkillLv>form.Unit.Skill.Level) {
+      if(form.TargetSkillLv>form.Unit.Skill.Level||form.ToggleSkillEvo) {
         form.IsSkillUp = true
       }
 
@@ -180,7 +209,7 @@ var app = new Vue({
       }
       else {
         this.$message({
-          message: '没有育成的必要！',
+          message: form.Unit.Name + '没有育成的必要！',
           type: 'warning'
         });
       }
