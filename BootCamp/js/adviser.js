@@ -28,7 +28,7 @@ const expRes = {
         Name: '大祝福',
         Exp: [150000, 150000, 150000, 150000, 150000, 150000, 0, 150000],
         getCost(cost,num, mode = [1,3]) {
-            cost.Blessing=num
+            cost.Blessing+=num
         }
     },
     MaidSpiritsNum: {
@@ -106,7 +106,7 @@ const costResDesc = {
 }
 class Plan {
     constructor(unit) {
-        this.UnitID = unit.ID
+        this.UnitID = unit.UnitID
         this.UnitName = unit.Name
         this.Unit=unit
         this.ExpTrace = []
@@ -142,28 +142,46 @@ class Plan {
 function calExpUp(plan, checkForm) {
     let unit = checkForm.Unit
     plan.ExpTrace = unit.getResExp(checkForm.TargetPro)
+    const resAvaliable=[
+        ['UseBlessing','Blessing'],
+        ['UseBlackBucket','BlackBucketNum'],
+        ['UseSmallSpirits','LittleSpiritsNum'],
+        ['UseMaidSpirits' ,'MaidSpiritsNum'],
+        ['IsExpUp', 'BucketPackNum']]
+    const leastExpPack = expRes['BucketPackNum'].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
     plan.ExpTrace.forEach((expR, i) => {
         Object.keys(plan.ExpPackNum).forEach(k=>{
             plan.ExpPackNum[k][i]=0
         })
-        let choosedRes='BucketPackNum'
         let exp = expR
-        let energy = expRes[choosedRes].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
-        
-        plan.ExpPackNum[choosedRes][i] = Math.floor(exp/energy)
-        expRes[choosedRes].getCost(plan.Cost, plan.ExpPackNum[choosedRes][i],checkForm.BucketPackCost)
+        for(let r in resAvaliable) {
+            if(checkForm[resAvaliable[r][0]])
+            {
+                let choosedRes=resAvaliable[r][1]
+                let energy = expRes[choosedRes].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
+                if(exp >= plan.ExpPackNum[choosedRes][i] * energy) {
+                    plan.ExpPackNum[choosedRes][i] = Math.floor(exp/energy)
+                    expRes[choosedRes].getCost(plan.Cost, plan.ExpPackNum[choosedRes][i],checkForm.BucketPackCost)
+                    exp -= plan.ExpPackNum[choosedRes][i] * energy
+                }
+                
+            }
+            if(exp<=0) {
+                exp=Math.max(exp,0)
+                break
+            }
 
-        exp -= plan.ExpPackNum[choosedRes][i] * energy
+        }
+          
         if(i===0) {
             exp += unit.Exp
-            
         }
         let [lv, nextp] = calLv(exp, unit.EvoNum+i, unit.Rare.ID)
         plan.ExpTraceNode[i]={Lv:lv, NextExp:nextp}
     });
     
-
-    for (let i = 1; i < plan.ExpTrace.length; ++i) {
+    let targetDepth = stageInfos.findIndex(s=>s.Name===checkForm.TargetPro.Stage)
+    for (let i = 1; unit.EvoNum+i<=targetDepth; ++i) {
         if(unit.EvoNum+i===1) {
             plan.Cost.Spirits+=1
         }
@@ -179,7 +197,6 @@ function calExpUp(plan, checkForm) {
         }
     }
 
-    plan.ExpUp=true
 }
 
 
@@ -198,7 +215,6 @@ function calSkillUp(plan, checkForm) {
     }
     let actChance = upSkillChance[checkForm.MaxSkillLv].map(p=>probCom(p,checkForm.Luck/100))
     actChance.slice(checkForm.InitSkillLv - 1,checkForm.TargetSkillLv).forEach(c=>plan.Cost.Iridescence+=1/c)
-    plan.SkillUp=true
 }
 
 function calCostReduce(plan, checkForm) {
@@ -206,7 +222,6 @@ function calCostReduce(plan, checkForm) {
     const costReduceChance = [1,0.5,0.25,0.25,0.25,0.25]
     let actChance = costReduceChance.map(p=>probCom(p,checkForm.Luck/100))
     actChance.slice(unit.ReducedCost,checkForm.InitCost+unit.ReducedCost-checkForm.TargetCost).forEach(c=>plan.Cost.Kizuna+=1/c)
-    plan.CostDown = true
 }
 function generateDesc(plan) {
 
@@ -221,21 +236,23 @@ function generateDesc(plan) {
                 res.push(expRes[k].Name+'×'+plan.ExpPackNum[k][i].toString())
             }
         })
-        partDesc.push(stage+': '+node+' + ('+res.join(' | ')+') ')
+        let descRes=''
+        if(res.length>0) {
+            descRes=' + ('+res.join(' | ')+') '
+        }
+        partDesc.push(stage+': '+node+descRes)
     })
     desc.push(partDesc.join(' => '))
 
     partDesc=[]
     Object.keys(plan.Cost).forEach(k=>{
         if(plan.Cost[k]>0) {
-            partDesc.push(costResDesc[k].getName(plan.Unit)+": "+plan.Cost[k].toString())
+            partDesc.push(costResDesc[k].getName(plan.Unit)+" × "+Math.round(plan.Cost[k]).toString())
         }
     })
     desc.push(partDesc.join(',  '))
 
     plan.DescHtml=desc.join('</div><div>')
-    plan.DescHtml.padStart(5,'<div>')
-    plan.DescHtml.padEnd(6,'</div>')
 
 
 }
@@ -256,6 +273,51 @@ function formulatePlan(checkForm) {
     
 }
 
+function generateCountDesc(trainForm) {
+    let countCost = {}
+    trainForm.forEach(plan=>{
+        Object.keys(plan.Cost).forEach(k=>{
+            if(plan.Cost[k]>0){
+                let res = costResDesc[k].getName(plan.Unit)
+                if(!countCost[k]) {
+                    countCost[k]={}
+                }
+                if(k=='Orbs'&&res.includes('</div><div')){
+                    let resArr=res.split('><')
+                    resArr[0]+='>'
+                    resArr[1] ='<'+resArr[1]
+                    resArr.forEach(r=>{
+                        if(!countCost[k][r]) {
+                            countCost[k][r]=0
+                        }
+                        countCost[k][r]+=plan.Cost[k]
+                    })
+                }
+                else {
+                    if(!countCost[k][res]) {
+                        countCost[k][res]=0
+                    }
+                    countCost[k][res]+=plan.Cost[k]
+                }
+                
+            }
+        })
+    })
+
+    let descArr=[]
+    Object.keys(countCost).forEach(k=>{
+        let descByKeys=[]
+        Object.keys(countCost[k]).forEach(l=>{
+            descByKeys.push(l+' × '+Math.round(countCost[k][l]).toString())
+        })
+        descArr.push(descByKeys.join(' | '))
+    })
+    let desc=descArr.join('</div><div>')
+    return desc
+
+}
+
 module.exports = {
     formulatePlan:formulatePlan,
+    generateCountDesc:generateCountDesc
 }

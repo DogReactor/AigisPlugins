@@ -148,10 +148,13 @@ function newGameResponse(event, data) {
       break
     case 'file-list':
       let classInfoKey = Object.entries(data).find(e => { return e[1] === 'PlayerUnitTable.aar' })
+      cargo.ClassInfos=[]
       donwloadAssets(classInfoKey, 'ClassInfos')
       let nameInfoKey = Object.entries(data).find(e => { return e[1] === 'NameText.atb' })
+      cargo.NameText=[]
       donwloadAssets(nameInfoKey, 'NameText')
       let skillInfoKey = Object.entries(data).find(e => { return e[1] === 'SkillList.atb' })
+      cargo.SkillList=[]
       donwloadAssets(skillInfoKey, 'SkillList')
       break
     default:break

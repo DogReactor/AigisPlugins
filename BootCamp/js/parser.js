@@ -30,14 +30,14 @@ class Unit {
             let startExp = 0
             let endExp = Math.round(expList[s.MaxLevel[maxLvID]-1] * this.Rare.ExpMult)
             if(s.Name===this.Stage) {
-                startExp = this.Exp
+                startExp = Math.min(this.Exp,endExp)
             }
             if(s.Name===targetPro.Stage) {
                 endExp =Math.round(expList[targetPro.Lv - 1] * this.Rare.ExpMult)
                 faceEnd = true
             }
             let exp = endExp - startExp
-            if(exp>0) {
+            if(exp>=0) {
                 resExp.push(exp)
             }
             if(exp < 0 || faceEnd===true) {
@@ -57,14 +57,15 @@ class ClassNode {
     constructor(c, loc) {
         this.ID = c.ClassID
         this.Name = c.Name
-        this.Root = c.MaxLevel
+        this.MaxLevel = c.MaxLevel
+        this.Root = loc
         this.Pre= loc
         this.Index=loc
         this.Orbs=[]
         if(c.Data_ExtraAwakeOrb1!=0) {
             this.Orbs.push(c.Data_ExtraAwakeOrb1)
         }
-        if(c.Data_ExtraAwakeOrb!=0) {
+        if(c.Data_ExtraAwakeOrb2!=0) {
             this.Orbs.push(c.Data_ExtraAwakeOrb2)
         }
         this.MaxGrowth = 0
@@ -92,15 +93,13 @@ function parseClassTree(ClassInfos){
     let classTree = []
     
     // 初始化职业树
-    ClassInfos.forEach(c=>{
-        let loc = classTree.length
-        classTree.push(new ClassNode(c, loc))
-    })
+    classTree = ClassInfos.map((c,i)=>new ClassNode(c,i))
     // 将职业树的子节点连上父节点
     ClassInfos.forEach((c,index)=>{
         if(c.JobChange!=0){
             let CCI = ClassInfos.findIndex(e=> e.ClassID === c.JobChange)
             classTree[CCI].Pre= index
+            
         }
         if(c.AwakeType1!=0){
             let AW1I = ClassInfos.findIndex(e=> e.ClassID === c.AwakeType1)
@@ -113,15 +112,16 @@ function parseClassTree(ClassInfos){
             classTree[AW2I].Depth = 3
         }
     })
-
     // 计算每个职业的根职业节点
-    classTree.forEach(c => {
+    for(let i in classTree) {
+        let c = classTree[i]
         c.Root = c.Pre
         if (c.Root != c.Index) {
             while (classTree[c.Root].Pre != classTree[c.Root].Index) {
                 c.Root = classTree[c.Root].Pre
             }
         }
+       
         classTree[c.Root].MaxGrowth = Math.max(classTree[c.Root].MaxGrowth, c.Depth)
         // 铜铁职阶个位为1
         if (c.ID%10===1) {
@@ -129,16 +129,15 @@ function parseClassTree(ClassInfos){
         }
 
         if(c.Depth=== 1) {
-            if(classTree[c.Root].Depth===0&&c.Orbs[0]===0&&c.Orbs[1]===0) {
+            if(classTree[c.Root].Depth===0&&c.Orbs.length===0) {
                 // 基本职业
-                classTree[c.Root].Orbs[0]=c.ID
+                classTree[c.Root].Orbs=[c.ID]
             }
             else {
                 classTree[c.Root].Orbs=c.Orbs
             }
         }
-    })
-
+    }
     return new Promise(resolve => resolve(classTree))
 }
 

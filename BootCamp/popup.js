@@ -2,7 +2,7 @@ const remote = require('electron').remote
 remote.getCurrentWebContents().openDevTools()
 const { stageInfos } = require('./js/scheme.js')
 const { parseInfos } = require('./js/parser') 
-const { formulatePlan } = require('./js/adviser.js')
+const { formulatePlan, generateCountDesc } = require('./js/adviser.js')
 const fs = require ('fs')
 const path = require ('path')
 
@@ -30,9 +30,9 @@ function run(pluginHelper) {
       console.log(response)
       parseInfos(response).then(result=>{
         scroll=result
-        app.classList=scroll.classList
         filters.classRange = scroll.classList.map(x=>x.Name)
         app.unitList= scroll.unitList.filter(u=>filters.passFilter(u))
+        app.classList=scroll.classList
       })
 
       app.fullscreenLoading=false
@@ -72,6 +72,7 @@ class UnitCheckForm {
   constructor(u) {
 
     this.Unit = u
+    this.UnitName = u.Name
     this.SkillEvoAvaliable = true
     this.SkillEvoText = '技能觉醒'
     if (u.Skill.ID===u.Skill.Evo[2]) {
@@ -82,7 +83,6 @@ class UnitCheckForm {
     }
     this.InitSkillLv=u.Skill.Level
     this.MaxSkillLv= u.Skill.MaxLv[1]
-    
     this.StageAvaliable = stageName.slice(u.EvoNum,u.MaxGrowth + 1)
     this.UseSmallSpirits = false
     this.UseMaidSpirits = false
@@ -123,7 +123,8 @@ var app = new Vue({
       },
       expResource:['小祝福',''],
       trainForm:[],
-      activeNames:[]
+      activeNames:[],
+      countDesc:''
     }
   },
   methods: {
@@ -168,8 +169,12 @@ var app = new Vue({
       }
 
       if(form.IsExpUp||form.IsSkillUp||form.IsCostDow) {
-        console.log(form)
+        let i = this.trainForm.findIndex(f=>f.Unit.UnitID===form.Unit.UnitID)
+        if(i!=-1) {
+          this.trainForm.splice(i,1)
+        }
         this.trainForm.push(formulatePlan(form))
+        this.countDesc=generateCountDesc(this.trainForm)
         this.activeNames.push(form.Unit.Name)
         this.trainFormVisible = false
       }
@@ -179,6 +184,14 @@ var app = new Vue({
           type: 'warning'
         });
       }
+    },
+
+    deletePlan(index){
+      let i = this.activeNames.findIndex(n=>n===this.trainForm.UnitName)
+      this.activeNames.splice(i,1)
+      this.trainForm.splice(index,1)
+      this.countDesc=generateCountDesc(this.trainForm)
+      
     }
 
   }

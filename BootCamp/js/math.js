@@ -40,8 +40,11 @@ function probCom(p1,p2) {
     let l1 = probit(p1)
     let l2 = probit(p2)
     let l = l1 + l2
-    if (l1===Infinity&&l2===-Infinity) {
-        l = 0
+    if (l2===-Infinity || l2===Infinity) {
+        l = l2
+    }
+    else if(l1===-Infinity || l1===Infinity) {
+        l=l1
     }
     return normalCumu(l)
 }
