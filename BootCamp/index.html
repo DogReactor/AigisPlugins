@@ -52,8 +52,9 @@
 
                     <el-collapse v-model="activeNames" v-show="trainForm.length"  style="margin-top:40">
                         <el-collapse-item v-for="(r,i) in trainForm" :name="r.UnitName" :key="i" :title="r.UnitName">
-                        <el-col :span="20"><div v-html="r.DescHtml"></div></el-col>
-                        <el-col :span="4"><el-button type="danger" size="mini" icon="el-icon-delete" circle style="float:right" @click="deletePlan(i)"></el-button></el-col>
+                        <el-col :span="22"><div v-html="r.DescHtml"></div></el-col>
+                        <el-col :span="1"><el-button type="primary" icon="el-icon-edit" style="float:right" circle @click="editPlan(i)"></el-button></el-col>
+                        <el-col :span="1"><el-button type="danger" icon="el-icon-delete" circle style="float:right" @click="deletePlan(i)"></el-button></el-col>
                         </el-collapse-item>
                         <el-collapse-item  name="统计" title="统计" v-if="countDesc!=''">
                                 <div v-html="countDesc"></div>
@@ -90,7 +91,8 @@
                         <p>4.已知Bug：调整技能等级数值后再点击技能觉醒可能无效，此时需要再点几下技能等级后重新点技觉按钮</p>
                         <p>5.减C概率规则为第1C 100%，第2C 50%，之后25%。暂未找到方法实现完整的减C概率规则</p>
                         <p>6.关于脸度：表征幸运值在人群中位置的量，按正态分布分位点相加原则影响加技、减C的成功率。脸度100（超越所有人的欧皇）时无视基准概率必定成功，脸度0（黑于所有人的非酋）时必定失败，脸度50（水准正中的普通人）适用标准概率</p>
-                        <p>7.部分选项仍在开发中，暂不可用_(:з」∠)_</p>
+                        <p>7.结果中的练度节点Lv1[48]表示Lv1距离下一级48经验，和游戏里一致</p>
+                        <p>8.部分选项仍在开发中，暂不可用_(:з」∠)_</p>
                         <span slot="footer" class="dialog-footer">
                             <el-button type="primary" @click="helpVisible = false">确 定</el-button>
                         </span>
@@ -115,7 +117,9 @@
                                 <el-col class="line" :span="2" align="center">——</el-col>
                                 <el-col :span="3">
                                     <el-input v-model="unitCheckForm.TargetPro.Lv" placeholder="请输入等级">
-                                        </el-time-picker>
+                                </el-col>
+                                <el-col :span="3" :push="3">
+                                    <el-checkbox-button v-model="unitCheckForm.ExpSpirit" label="有育成圣灵"></el-checkbox-button>
                                 </el-col>
                             </el-form-item>
                             <el-form-item label="使用经验资源">

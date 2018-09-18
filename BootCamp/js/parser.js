@@ -138,6 +138,8 @@ function parseClassTree(ClassInfos){
             }
         }
     }
+
+    translateName(classTree)
     return new Promise(resolve => resolve(classTree))
 }
 
@@ -266,7 +268,6 @@ async function parseInfos(rawData){
         })
     })
 
-    translateName(scroll.classList)
 
 
 

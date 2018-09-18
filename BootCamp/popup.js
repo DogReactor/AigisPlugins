@@ -1,5 +1,5 @@
-const remote = require('electron').remote
-remote.getCurrentWebContents().openDevTools()
+// const remote = require('electron').remote
+// remote.getCurrentWebContents().openDevTools()
 const { stageInfos } = require('./js/scheme.js')
 const { parseInfos } = require('./js/parser') 
 const { formulatePlan, generateCountDesc } = require('./js/adviser.js')
@@ -105,6 +105,7 @@ class UnitCheckForm {
     this.TargetCost = u.Cost
     this.BucketPackCost = [1, 3]
     this.Luck = 50
+    this.ExpSpirit = true
     this.GlobalExpMult = 1
     this.IsExpUp = true
     this.IsSkillUp = false
@@ -199,7 +200,7 @@ var app = new Vue({
       if(form.IsExpUp||form.IsSkillUp||form.IsCostDown) {
         let i = this.trainForm.findIndex(f=>f.Unit.UnitID===form.Unit.UnitID)
         if(i!=-1) {
-          this.trainForm.splice(i,1)
+          this.deletePlan(i)
         }
         this.trainForm.push(formulatePlan(form))
         this.countDesc=generateCountDesc(this.trainForm)
@@ -215,11 +216,15 @@ var app = new Vue({
     },
 
     deletePlan(index){
-      let i = this.activeNames.findIndex(n=>n===this.trainForm.UnitName)
+      let i = this.activeNames.findIndex(n=>n===this.trainForm[index].UnitName)
       this.activeNames.splice(i,1)
       this.trainForm.splice(index,1)
       this.countDesc=generateCountDesc(this.trainForm)
       
+    },
+    editPlan(index){
+      this.unitCheckForm = this.trainForm[index].CheckForm
+      this.trainFormVisible = true
     }
 
   }

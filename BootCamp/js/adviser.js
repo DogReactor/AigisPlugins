@@ -155,7 +155,9 @@ function calExpUp(plan, checkForm) {
         ['UseSmallSpirits','LittleSpiritsNum'],
         ['UseMaidSpirits' ,'MaidSpiritsNum'],
         ['IsExpUp', 'BucketPackNum']]
-    const leastExpPack = expRes['BucketPackNum'].Exp[unit.Rare.ID]*checkForm.GlobalExpMult
+    if(checkForm.ExpSpirit) {
+        checkForm.GlobalExpMult = 1.1
+    }
     plan.ExpTrace.forEach((expR, i) => {
         Object.keys(plan.ExpPackNum).forEach(k=>{
             plan.ExpPackNum[k][i]=0
@@ -240,7 +242,7 @@ function generateDesc(plan) {
     let partDesc=[]
     plan.ExpTraceNode.forEach((n,i)=>{
         let stage = stageInfos[plan.Unit.EvoNum+i].Name
-        let node = n.Lv.toString()+'['+n.NextExp.toString()+']'
+        let node = 'Lv' + n.Lv.toString()+'['+n.NextExp.toString()+']'
         let res=[]
         Object.keys(plan.ExpPackNum).forEach((k,j)=>{
             if(plan.ExpPackNum[k][i]>0) {
