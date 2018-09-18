@@ -1,5 +1,5 @@
-// const remote = require('electron').remote
-// remote.getCurrentWebContents().openDevTools()
+const remote = require('electron').remote
+remote.getCurrentWebContents().openDevTools()
 const { stageInfos } = require('./js/scheme.js')
 const { parseInfos } = require('./js/parser') 
 const { formulatePlan, generateCountDesc } = require('./js/adviser.js')
@@ -24,12 +24,11 @@ var scroll = {
 function run(pluginHelper) {
   configFile = path.join(pluginHelper.plugin.realPath, 'config.json')
   let storedForm = []
-  fs.readFile(configFile,(err,data)=>{
-    if(!err&&data) {
-      storedForm=JSON.parse(data)
-    }
-    
-  })
+  if(fs.existsSync(configFile))
+  {
+    storedForm=JSON.parse(fs.readFileSync(configFile))
+  }
+
   pluginHelper.sendMessage('Request raw data', (response) => {
     if (response === 'Wait to ready') {} else {
       console.log('Received data')
@@ -118,7 +117,7 @@ var app = new Vue({
   data() {
  
     return {
-      fullscreenLoading: false,
+      fullscreenLoading: true,
       helpVisible:false,
       classFormVisible:false,
       trainFormVisible:false,
@@ -156,16 +155,17 @@ var app = new Vue({
     },
 
     clearConfig() {
+      this.trainForm.splice(0)
       if(fs.existsSync(configFile)){
         fs.unlink(configFile,(err)=>{
           if (err) {
             this.$notify.error({
-              title: '清空配置失败',
+              title: '清空保存的配置失败',
               message: err
             })
           } else {
             this.$notify({
-              title: '清空配置成功',
+              title: '清空保存的配置成功',
               type: 'success'
             });
           }
