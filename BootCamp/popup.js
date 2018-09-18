@@ -1,5 +1,5 @@
-const remote = require('electron').remote
-remote.getCurrentWebContents().openDevTools()
+// const remote = require('electron').remote
+// remote.getCurrentWebContents().openDevTools()
 const { stageInfos } = require('./js/scheme.js')
 const { parseInfos } = require('./js/parser') 
 const { formulatePlan, generateCountDesc } = require('./js/adviser.js')
@@ -131,7 +131,6 @@ var app = new Vue({
       unitCheckForm:{
         TargetPro: {Lv:1, Stage:'CC前'}
       },
-      expResource:['小祝福',''],
       trainForm:[],
       activeNames:[],
       countDesc:''
@@ -197,7 +196,7 @@ var app = new Vue({
         form.IsCostDown = true
       }
 
-      if(form.IsExpUp||form.IsSkillUp||form.IsCostDow) {
+      if(form.IsExpUp||form.IsSkillUp||form.IsCostDown) {
         let i = this.trainForm.findIndex(f=>f.Unit.UnitID===form.Unit.UnitID)
         if(i!=-1) {
           this.trainForm.splice(i,1)

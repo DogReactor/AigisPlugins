@@ -59,6 +59,7 @@
                                 <div v-html="countDesc"></div>
                         </el-collapse-item>
                     </el-collapse>
+
                     <el-table :data="unitList" border stripe :default-sort="{prop: 'UnitID', order:'descending'}" style="margin-top:40">
                         <el-table-column prop="UnitID" label="ID" :sort-by="['UnitID','CardID']" align="center"
                             sortable width="85"></el-table-column>
@@ -130,7 +131,6 @@
                                     <el-input-number v-model="unitCheckForm.TargetSkillLv" :min="unitCheckForm.InitSkillLv"
                                         :max="unitCheckForm.MaxSkillLv" label="技能等级"></el-input-number>
                                     </el-col>
-
                                     <el-col :span="5">
                                     <el-checkbox-button v-model="unitCheckForm.ToggleSkillEvo" :label="unitCheckForm.SkillEvoText"
                                         :disabled="!unitCheckForm.SkillEvoAvaliable" style="float:right"></el-checkbox-button>
