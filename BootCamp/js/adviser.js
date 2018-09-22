@@ -214,7 +214,7 @@ function calSkillUp(plan, checkForm) {
     if(checkForm.ToggleSkillEvo) {
         plan.Cost.SkillEvoSpirit+=1
         plan.Cost.Gold += unit.Rare.AWGoldCost
-        plan.Cost.Orbs = unit.Rare.OrbCost
+        plan.Cost.Orbs += unit.Rare.OrbCost
         checkForm.TargetSkillLv=unit.Skill.MaxLv[1]
     }
     const upSkillChance = {

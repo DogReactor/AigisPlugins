@@ -146,7 +146,7 @@ function parseClassTree(ClassInfos){
 function parseUnits(rawData, classTree) {
     let unitsList = []
     barracks = rawData.BarracksInfos.filter(u=>{
-        return u.A1>=100 && parseInt(u.AE)%16!=1
+        return u.A2>=100 && parseInt(u.AE)%16!=1
     })
 
     barracks.forEach(unitObj => {
