@@ -20,7 +20,7 @@ var scroll = {
 }
 
 
-
+var mailBox = null
 function run(pluginHelper) {
   configFile = path.join(pluginHelper.plugin.realPath, 'config.json')
   let storedForm = []
@@ -28,7 +28,7 @@ function run(pluginHelper) {
   {
     storedForm=JSON.parse(fs.readFileSync(configFile))
   }
-
+  mailBox = pluginHelper
   pluginHelper.sendMessage('Request raw data', (response) => {
     if (response === 'Wait to ready') {} else {
       console.log('Received data')
