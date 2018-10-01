@@ -1,7 +1,7 @@
 {
     "name": "aigisplugins",
-    "version": "0.2.0",
-    "description": "Plugins for AigisPlayer2 (https://github.com/Yukimir/AigisPlayer)",
+    "version": "0.3.0",
+    "description": "Plugins for AigisPlayer2 (https://github.com/DogReactor/AigisPlugins)",
     "productName": "AigisPlugins",
     "homepage": "https://github.com/DeltAlice/AigisPlugins",
     "author": {

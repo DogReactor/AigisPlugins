@@ -295,7 +295,7 @@ function generateCountDesc(trainForm) {
                 if(!countCost[k]) {
                     countCost[k]={}
                 }
-                if(k=='Orbs'&&res.includes('</div><div')){
+                if(k=='Orbs'&&res.includes('><img')){
                     let resArr=res.split('><')
                     resArr[0]+='>'
                     resArr[1] ='<'+resArr[1]

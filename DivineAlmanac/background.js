@@ -34,17 +34,17 @@ let eventsList = [
     {
         Title:'打魔神',
         PositiveDesc:'怎么感觉我只下个王子都能打Lv15',
-        NegativeDesc:'卡老毕LV1了……'
+        NegativeDesc:'全黑骑脸被LV1抽回家'
     },
     {
         Title:'打大讨伐',
-        PositiveDesc:'开局下完单位就可以挂机500了',
-        NegativeDesc:'还没打满100个队伍就全惨死了'
+        PositiveDesc:'开局就500,可我还没下单位啊……',
+        NegativeDesc:'与敌人打出了15:1的漂亮交换比'
     },
     {
         Title:'育成单位',
         PositiveDesc:'一技一虹，一绊一C',
-        NegativeDesc:'4升5吃了99个虹'
+        NegativeDesc:'4升5吃了150个虹'
     },
     {
         Title:'推活动图',

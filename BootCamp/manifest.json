@@ -1,7 +1,7 @@
 {
     "pluginName":"王国训练营",
     "author":"BetAlice",
-    "version":"0.1.0",
+    "version":"0.1.1",
     "description":"德惟善政，政在养民",
     "entry":"index.html",
     "background":"background.js",
