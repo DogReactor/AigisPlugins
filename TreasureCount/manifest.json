@@ -1,0 +1,12 @@
+{
+    "pluginName":"占星术(掉落剧透)",
+    "author":"BetAlice",
+    "version":"0.1.0",
+    "description":"I will look on the stars and look on thee, and read the page of thy destiny.",
+    "entry":"index.html",
+    "background":"background.js",
+    "game":["aigis"],
+    "inject":"inject.js"
+    
+    
+}
