@@ -91,15 +91,15 @@ function parseSpoils(data) {
   let dropInfo = []
   mapInfo.forEach((e,i)=>{
     if(e.PrizeCardID>0) {
-      dropInfo.push({Treasure:e.PrizeCardID, ID:library.QuestsList.QuestID[index], Order:i})
+      dropInfo.push({Treasure:e.PrizeCardID, ID:library.QuestsList.QuestID[index], Order:i, Num:0})
     }
   })
-  assert(dropInfo.length===data.LOTTERY.Result.length)
   for (let i in dropInfo.length) {
-    dropInfo[i].Num = data.LOTTERY.Result[i]
+    dropInfo[i].Num += data.LOTTERY.Result[i]
     let treasureKey = 'Treasure' + dropInfo[i].Treasure
     dropInfo[i].Treasure = library.QuestsList[treasureKey][index]
   }
+  console.log(dropInfo)
 
   return dropInfo
 

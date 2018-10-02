@@ -1,18 +1,20 @@
 const remote = require('electron').remote
 remote.getCurrentWebContents().openDevTools()
-const { ItemList} = require('./item')
+const {
+    ItemList
+} = require('./item')
 const path = require('path')
 
 class DropTerm {
     QuestID = 0;
-    Treasure=[];
+    Treasure = [];
     constructor(dropInfo) {
         this.QuestID = dropInfo.ID
         let item = {}
     }
 
     getTermDesc(id) {
-        
+
     }
 }
 
@@ -21,6 +23,7 @@ var cardList = []
 var dropHistory = []
 
 var mailBox = null
+
 function run(pluginHelper) {
     mailBox = pluginHelper
     pluginHelper.sendMessage(
@@ -38,6 +41,11 @@ function run(pluginHelper) {
             }
         })
 
+    pluginHelper.sendMessage(
+        'Request spoils', (response) => {
+            console.log(response)
+        })
+
     pluginHelper.onMessage(msg => {
         switch (msg.title) {
             case 'UnitsInfo':
@@ -52,6 +60,10 @@ function run(pluginHelper) {
                 })
                 break
             case 'updateSpoils':
+                console.log(msg.data)
+                break
+            default:
+                break
 
         }
 
