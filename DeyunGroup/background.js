@@ -50,7 +50,7 @@ function run(pluginHelper) {
     }
   })
 
-  pluginHelper.aigisGameDataService.subscribe('allcards-info',(data,url)=>{
+  pluginHelper.aigisGameDataService.subscribe('allcards-info',(url,data)=>{
     let num = data['Ability'].length
       for (let i=0;i<num;++i){
         cargo.UnitsInfos[i]={}
@@ -63,17 +63,17 @@ function run(pluginHelper) {
     cargo.DataReady.UnitsInfos = true
     cargo.checkReady(mailBox)
   })
-  pluginHelper.aigisGameDataService.subscribe('allunits-info',(data,url)=>{
+  pluginHelper.aigisGameDataService.subscribe('allunits-info',(url,data)=>{
     cargo.BarracksInfos = data
     cargo.DataReady.BarracksInfos = true
     cargo.checkReady(mailBox)
   })
-  pluginHelper.aigisGameDataService.subscribe('NameText.atb',(data,url)=>{
+  pluginHelper.aigisGameDataService.subscribe('NameText.atb',(url,data)=>{
     cargo.NameText = data.Contents
     cargo.DataReady.NameText = true
     cargo.checkReady(mailBox)
   })
-  pluginHelper.aigisGameDataService.subscribe('PlayerUnitTable.aar',(data,url)=>{
+  pluginHelper.aigisGameDataService.subscribe('PlayerUnitTable.aar',(url,data)=>{
     cargo.ClassInfos = data.Files[1].Content.Contents
     cargo.DataReady.ClassInfos = true
     cargo.checkReady(mailBox)
