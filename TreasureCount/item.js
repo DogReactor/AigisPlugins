@@ -1,199 +1,85 @@
-const items = [
-    1001,
-    1002,
-    1003,
-    1004,
-    1005,
-    1006,
-    1007,
-    1008,
-    133,
-    136,
-    2001,
-    2002,
-    2003,
-    2004,
-    234,
-    250,
-    270,
-    290,
-    3001,
-    3002,
-    3003,
-    303,
-    320,
-    333,
-    334,
-    335,
-    383,
-    384,
-    397,
-    4001,
-    4002,
-    4003,
-    4004,
-    4005,
-    4006,
-    4007,
-    4008,
-    4009,
-    4010,
-    4011,
-    4012,
-    4013,
-    4014,
-    4015,
-    4016,
-    4017,
-    4018,
-    4019,
-    4020,
-    4021,
-    4022,
-    4023,
-    4024,
-    4025,
-    4026,
-    4027,
-    4028,
-    4029,
-    4030,
-    4031,
-    4032,
-    4033,
-    4034,
-    4035,
-    433,
-    459,
-    491,
-    5001,
-    5002,
-    5003,
-    54,
-    55,
-    56,
-    57,
-    58,
-    59,
-    60,
-    77
-]
-
-class Hunter {
-    constructor(prob, target) {
-        this.ProbMod = prob
-        this.PreyFlag = target
-    }
+const items = {
+    1001:'res/1001.png',
+    1002:'res/1002.png',
+    1003:'res/1003.png',
+    1004:'res/1004.png',
+    1005:'res/1005.png',
+    1006:'res/1006.png',
+    1007:'res/1007.png',
+    1008:'res/1008.png',
+    133:'res/133.png',
+    136:'res/136.png',
+    2001:'res/2001.png',
+    2002:'res/2002.png',
+    2003:'res/2003.png',
+    2004:'res/2004.png',
+    234:'res/234.png',
+    250:'res/250.png',
+    270:'res/270.png',
+    290:'res/290.png',
+    3001:'res/3001.png',
+    3002:'res/3002.png',
+    3003:'res/3003.png',
+    303:'res/303.png',
+    320:'res/320.png',
+    333:'res/333.png',
+    334:'res/334.png',
+    335:'res/335.png',
+    383:'res/383.png',
+    384:'res/384.png',
+    397:'res/397.png',
+    4001:'res/4001.png',
+    4002:'res/4002.png',
+    4003:'res/4003.png',
+    4004:'res/4004.png',
+    4005:'res/4005.png',
+    4006:'res/4006.png',
+    4007:'res/4007.png',
+    4008:'res/4008.png',
+    4009:'res/4009.png',
+    4010:'res/4010.png',
+    4011:'res/4011.png',
+    4012:'res/4012.png',
+    4013:'res/4013.png',
+    4014:'res/4014.png',
+    4015:'res/4015.png',
+    4016:'res/4016.png',
+    4017:'res/4017.png',
+    4018:'res/4018.png',
+    4019:'res/4019.png',
+    4020:'res/4020.png',
+    4021:'res/4021.png',
+    4022:'res/4022.png',
+    4023:'res/4023.png',
+    4024:'res/4024.png',
+    4025:'res/4025.png',
+    4026:'res/4026.png',
+    4027:'res/4027.png',
+    4028:'res/4028.png',
+    4029:'res/4029.png',
+    4030:'res/4030.png',
+    4031:'res/4031.png',
+    4032:'res/4032.png',
+    4033:'res/4033.png',
+    4034:'res/4034.png',
+    4035:'res/4035.png',
+    433:'res/433.png',
+    459:'res/459.png',
+    491:'res/491.png',
+    5001:'res/5001.png',
+    5002:'res/5002.png',
+    5003:'res/5003.png',
+    54:'res/54.png',
+    55:'res/55.png',
+    56:'res/56.png',
+    57:'res/57.png',
+    58:'res/58.png',
+    59:'res/59.png',
+    60:'res/60.png',
+    77:'res/77.png'
 }
-var treasureHunter = {
-    referenceData: {
-        UnitsList: null,
-        BarrackInfo: null,
-        ClassInfo: null,
-        AbilityConfig: null,
-        AbilityList: null
-    },
-    registered:false,
-    Hunter: {
-        57: new Hunter(0, (obj) => obj >= 1001 && obj <= 1004),
-        58: new Hunter(0, (obj) => obj >= 1005 && obj <= 1008),
-        59: new Hunter(0, (obj) => obj >= 2001 && obj <= 2010),
-        60: new Hunter(0, (obj) => obj == 77 || obj == 133 || obj == 250 || obj == 320),
-        61: new Hunter(0, (obj) => [54, 55, 56, 57, 58, 59, 60, 136, 234, 290, 303, 333, 334, 335, 383, 384, 397, 433, 459, 491].indexOf(obj) != -1),
-        79: new Hunter(0, (obj) => this.referenceData.UnitsList.Rare[obj - 1] == 2),
-        80: new Hunter(0, (obj) => obj >= 1000)
-    },
-    LoadRawData(label, data) {
-        if(label === 'AbilityConfig') {
-            let i = 0
-            let configId = 0
-            this.referenceData.AbilityConfig = []
-            data.forEach(c=>{
-                if(c._ConfigID!=0){
-                    configId = c._ConfigID
-                    this.referenceData.AbilityConfig[configId] = []
-                }
-                this.referenceData.AbilityConfig[configId].push(
-                    {
-                        _InfluenceType:c._InfluenceType,
-                        _Param1:c._Param1
-                    }
-                )
-            })
-            console.log(label,this.referenceData.AbilityConfig)
-        } else {
-            console.log(label, data)
-            this.referenceData[label] = data
-        }
-        if (Object.values(this.referenceData).every(e => e !== null)) {
-            this.registerHunter()
-        }
-    },
-    registerHunter() {
-        this.referenceData.BarrackInfo.forEach((unit,index) => {
-            this.checkIfHunter(unit)
-        });
-        this.registered = true
-    },
-    checkIfHunter(unit) {
-        let i = unit.A1 - 1
-        let AbilityId = this.referenceData.UnitsList.Ability[i]
-        let classObj = this.referenceData.ClassInfo.find(cl => cl.ClassID === unit.A2)
-        if (classObj.MaxLevel < 99) {
-            AbilityId = this.referenceData.UnitsList.Ability_Default[i]
-        }
-        if (AbilityId < this.referenceData.AbilityList.length) {
-            let configId = this.referenceData.AbilityList[AbilityId]._ConfigID
-            if(configId!=0){
-                this.referenceData.AbilityConfig[configId].forEach(c=>{
-                    if (c._InfluenceType!=80&&this.Hunter.hasOwnProperty(c._InfluenceType)) {
-                        this.Hunter[c._InfluenceType].ProbMod = Math.max(this.Hunter[c._InfluenceType].ProbMod, c._Param1)
-                    }
-                })
-            } 
-        }
-    },
-    updateHunter(operation, unit){
-        switch(operation) {
-            case 'unit-evo':
-            let member = this.BarrackInfo.find(u=>u.A7===unit.A7)
-            member.A2=unit.A2
-            this.checkIfHunter(member)
-            break
-            case 'new-unit':
-            this.BarrackInfo.push(unit)
-            this.checkIfHunter(unit)
-            break
-            case 'del-unit':
-            break
-            default:break
-        }
-    },
-    async ModTeamProb(team) {
-        if(team&&this.registered) {
-            team.forEach(u=>{
-                let teammate = this.referenceData.BarrackInfo.find(e=>e.A7===u.A7)
-                let configId = this.referenceData.ClassInfo.find(cl => cl.ClassID === teammate.A2).ClassAbility1
-                console.log(configId,teammat)
-                if(configId>0&&configId<this.referenceData.AbilityConfig.length) {
-                    this.referenceData.AbilityConfig[configId].forEach(c=>{
-                        if (this.Hunter.hasOwnProperty(c._InfluenceType)) {
-                            this.Hunter[c._InfluenceType].ProbMod = Math.max(this.Hunter[c._InfluenceType].ProbMod, c._Param1)
-                        }
-                    })
-                } 
-            })
-            return Promise.resolve('Ok')   
-        } else {
-            return Promise.reject('Haven\'t got team or registered')
-        }     
-    },
-    async RemarkProb(dropInfo) {
 
-    }
-}
 
 module.exports = {
-    ItemList: new Set(items),
-    treasureHunter: treasureHunter
+    ItemList: items
 }

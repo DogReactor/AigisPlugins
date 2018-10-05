@@ -1,12 +1,16 @@
 {
-    "pluginName":"占星术(掉落剧透)",
-    "author":"BetAlice",
+    "pluginName":"宝物猎人",
+    "author":"Betalice",
     "version":"0.1.0",
-    "description":"I will look on the stars and look on thee, and read the page of thy destiny.",
+    "description":" Some people call it junk, me, I call them treasure.（需要数据收集支持）",
     "entry":"index.html",
     "background":"background.js",
-    "game":["aigis"],
-    "inject":"inject.js"
-    
-    
+    "windowOption":{
+        "width":720,
+        "height":400,
+        "title":"宝物猎人",
+        "minimizable":true,
+        "maximizable":false
+
+    }
 }
