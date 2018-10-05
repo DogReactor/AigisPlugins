@@ -1,0 +1,59 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="app" v-loading='fullscreenLoading' element-loading-text="加载数据中">
+        <template>
+            <el-table :data="dropHistory" style="width: 100%" stripe>
+                <el-table-column type="expand">
+                    <template slot-scope="props">
+                        <el-table :data="props.row.Items" stripe style="width: 80%">
+                            <el-table-column label="预定掉落">
+                                <template slot-scope="itemscope">
+                                    <div v-html="itemscope.row.DescHtml"></div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="EnemyOrder" label="怪物序号" align="center"></el-table-column>
+                            <el-table-column prop="Display" label="是否掉落" align="center"></el-table-column>
+                            <el-table-column prop="ProbMod" label="掉率修正" align="center"></el-table-column>
+                        </el-table>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="Time" label="时间" width="100"></el-table-column>
+                <el-table-column prop="Summary" label="掉落物">
+                    <template slot-scope="scope">
+                        <div v-html="scope.row.Summary"></div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </template>
+    </div>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="./popup.js"></script>
+<script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+</html>
