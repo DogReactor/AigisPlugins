@@ -1,5 +1,5 @@
-const remote = require('electron').remote
-remote.getCurrentWebContents().openDevTools()
+// const remote = require('electron').remote
+// remote.getCurrentWebContents().openDevTools()
 const { stageInfos } = require('./js/scheme.js')
 const { parseInfos } = require('./js/parser') 
 const { formulatePlan, generateCountDesc } = require('./js/adviser.js')

@@ -1,7 +1,7 @@
 {
     "pluginName":"德云轮盘",
-    "author":"BetAlice",
-    "version":"1.0.1",
+    "author":"Betalice",
+    "version":"1.0.3",
     "description":"是故君子居则观其象而玩其辞，动则观其变而玩其占",
     "entry":"index.html",
     "background":"background.js",
