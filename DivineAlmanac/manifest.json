@@ -1,7 +1,7 @@
 {
     "pluginName":"王国老黄历",
     "author":"Betalice",
-    "version":"0.1.1",
+    "version":"0.1.2",
     "description":"夏洛特不知道从哪里刨出来的一千年后的历书",
     "entry":"almanac.html",
     "background":"background.js",

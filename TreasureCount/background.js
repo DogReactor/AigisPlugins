@@ -1,4 +1,3 @@
-const { ItemList } = require('./item')
 
 var cargo = {
   UnitsList: {},
@@ -40,21 +39,18 @@ function run(pluginHelper) {
       case 'Request spoils':
         sendResponse(spoilsHistory)
         break
-      default:
+      case 'SendAgain':
+      const rec = spoilsHistory[0]
+      pluginHelper.aigisStatisticsService.sendRecord({type:'spoils', record:rec.dropInfo})
         break
     }
   })
 
-  pluginHelper.aigisGameDataService.subscribe('quest-start', (url, data) => {
+  pluginHelper.aigisStatisticsService.subscribe('spoils', (rec) => {
     const date = new Date()
     const time = date.getHours()+':'+date.getMinutes()
-    let getDropInterval = setInterval(() => {
-      if (spoilsHistory.length !== pluginHelper.aigisStatisticsService.getStats('spoils').length) { 
-        spoilsHistory.push({time:time, dropInfo:pluginHelper.aigisStatisticsService.getStats('spoils')[spoilsHistory.length]})
-        pluginHelper.sendMessage({ title: 'updateSpoils', data: spoilsHistory[spoilsHistory.length - 1] }, (response) => { })
-        clearInterval(getDropInterval)
-      }
-    },1000)
+    spoilsHistory.push({time:time, dropInfo:rec})
+    pluginHelper.sendMessage({ title: 'updateSpoils', data: {time:time, dropInfo:rec} }, (response) => { })
   })
   pluginHelper.aigisGameDataService.subscribe('allcards-info', (url, data) => {
     cargo.UnitsList = data

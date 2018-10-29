@@ -21,7 +21,7 @@ class DropInfo {
                 dropItem.DescHtml = '<div class = "dropitem">' + dropItem.Name + '</div>'
             }
             dropItem.Display = item.Num > 0 ? 'YES' : 'NO'
-            dropItem.EnemyOrder = item.EnemyOrder
+            dropItem.EnemyOrder = item.EnemyOrder > 0 ? item.EnemyOrder : 'Unknown'
             dropItem.ProbMod = (item.Prob-100).toString()+' %'
             return dropItem
         })
@@ -34,6 +34,7 @@ class DropInfo {
 
 var cardList = {}
 var mailBox = null
+
 function run(pluginHelper) {
     mailBox = pluginHelper
     pluginHelper.sendMessage(
@@ -59,7 +60,6 @@ function run(pluginHelper) {
         })
 
     pluginHelper.onMessage(msg => {
-        console.log(msg)
         switch (msg.title) {
             case 'UnitsInfo':
                 msg.data.NameText.forEach((nameMsg, index) => {

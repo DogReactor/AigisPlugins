@@ -9,6 +9,7 @@ const items = {
     1008:'res/1008.png',
     133:'res/133.png',
     136:'res/136.png',
+    166:'res/166.png',
     2001:'res/2001.png',
     2002:'res/2002.png',
     2003:'res/2003.png',
