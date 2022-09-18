@@ -1,4 +1,4 @@
-
+const fs = require('fs')
 var cargo = {
   UnitsList: {},
   NameText: [],
@@ -10,7 +10,10 @@ var cargo = {
   checkReady(post) {
     let flag = Object.values(this.DataReady).every(e => e)
     if (flag && this.isRequired) {
-      post.sendMessage({ title: 'UnitsInfo', data: this })
+      post.sendMessage({
+        title: 'UnitsInfo',
+        data: this
+      })
       this.isRequired = false
     }
     return flag
@@ -34,23 +37,44 @@ function run(pluginHelper) {
         }
         break
       case 'Request without promise':
-        sendResponse({ title: 'UnitsInfo', data: cargo })
+        sendResponse({
+          title: 'UnitsInfo',
+          data: cargo
+        })
         break
       case 'Request spoils':
         sendResponse(spoilsHistory)
         break
       case 'SendAgain':
-      const rec = spoilsHistory[0]
-      pluginHelper.aigisStatisticsService.sendRecord({type:'spoils', record:rec.dropInfo})
+        const rec = spoilsHistory[0]
+        pluginHelper.aigisStatisticsService.sendRecord({
+          type: 'spoils',
+          record: rec.dropInfo
+        })
         break
     }
   })
 
   pluginHelper.aigisStatisticsService.subscribe('spoils', (rec) => {
     const date = new Date()
-    const time = date.getHours()+':'+date.getMinutes()
-    spoilsHistory.push({time:time, dropInfo:rec})
-    pluginHelper.sendMessage({ title: 'updateSpoils', data: {time:time, dropInfo:rec} }, (response) => { })
+    fs.writeFile("spoils.json", JSON.stringify(rec), (e)=>{
+      if (e) {
+        console.log(e)
+      }
+    })
+    console.log('recived in back!', rec)
+    const time = date.getHours() + ':' + date.getMinutes()
+    const record = {
+      time: time,
+      dropInfo: rec.record.DropInfos,
+      name: rec.name
+    };
+    console.log(record)
+    spoilsHistory.push(record)
+    pluginHelper.sendMessage({
+      title: 'updateSpoils',
+      data: record
+    }, (response) => {})
   })
   pluginHelper.aigisGameDataService.subscribe('allcards-info', (url, data) => {
     cargo.UnitsList = data
